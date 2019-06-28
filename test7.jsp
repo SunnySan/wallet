@@ -112,6 +112,8 @@ ECKey.ECDSASignature ecdsaSignature = ECDSASignature.decodeFromDER(hex2Byte("304
 TransactionSignature txSignature = new TransactionSignature(ecdsaSignature, Transaction.SigHash.ALL, true);
 tx.getInput(0).setScriptSig(ScriptBuilder.createInputScript(txSignature));
 
+String hex = Hex.toHexString(transaction.bitcoinSerialize());
+
 /*
 addInputsToTransaction(myAddress, tx, unspents, amount);
 signInputsOfTransaction(myAddress, tx, key);
