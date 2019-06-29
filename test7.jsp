@@ -22,6 +22,8 @@
 <%@ page import="org.bitcoinj.core.Sha256Hash"%>
 <%@ page import="org.bitcoinj.core.ECKey.ECDSASignature"%>
 <%@ page import="org.bitcoinj.crypto.TransactionSignature"%>
+<%@ page import="org.bitcoinj.core.Peer"%>
+<%@ page import="org.bitcoinj.core.PeerGroup"%>
 
 
 <%@include file="00_constants.jsp"%>
@@ -69,6 +71,17 @@ if (beEmpty(sPublicKey)){
 String	sResponse	=	"";
 
 NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_TESTNET);
+
+PeerGroup pg = new PeerGroup(params);
+pg.setMinBroadcastConnections(2);
+pg.start();
+pg.waitForPeers(2);
+java.util.List<Peer> cps = pg.getConnectedPeers();
+for (Peer p : cps){
+	out.print("<p>peer ping time: " + String.valueOf(p.getLastPingTime()));
+}
+
+
 Transaction tx = new Transaction(params);
 Address targetAddress = Address.fromString(params, "mzXuJo757JoxpiGqdwGiBu9BMWbto1PaAx");
 ECKey myKey = ECKey.fromPublicOnly(hex2Byte("03B4CFEEB44B6D0A2E8FAB410FD70FA1646DA7BE47C6B559349EA7513143BF7D54"));
@@ -108,11 +121,12 @@ out.print("<p>TX:<p>" + tx.toString());
         out.print("<p>hash:<p>" + byte2Hex(hash.getBytes()));
     }
 
-ECKey.ECDSASignature ecdsaSignature = ECDSASignature.decodeFromDER(hex2Byte("3045022100BDE875C816DD108A9843EB6D417825317B095BDE75F1215733C3D91E4776CF26022000D674692A44EFED04A2F702E05BF827379BDBED3EB1303FF2DDA16ED3E187C2"));
+ECKey.ECDSASignature ecdsaSignature = ECDSASignature.decodeFromDER(hex2Byte("3046022100B205751BB2C4F4352145E833AF28D2444C54F267A41C880176435B845EF4547D0221009A04AF6B4E7E72728CECE8721E4EE0EE1C5D074FCD5EEFB3D953A977E210A77C"));
 TransactionSignature txSignature = new TransactionSignature(ecdsaSignature, Transaction.SigHash.ALL, true);
 tx.getInput(0).setScriptSig(ScriptBuilder.createInputScript(txSignature));
-
-String hex = Hex.toHexString(transaction.bitcoinSerialize());
+tx.verify();
+String hex = byte2Hex(tx.bitcoinSerialize());
+out.print("<p>tx bitcoinSerialize:<p>" + hex);
 
 /*
 addInputsToTransaction(myAddress, tx, unspents, amount);
