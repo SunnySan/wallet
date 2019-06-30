@@ -96,16 +96,28 @@
 	<div class="content-wrapper">
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
-			<h1 style="text-align:center;">
-				Welcome to slimduet Cole Wallet
-				<p>Card Id: <span class="sysCardId"></span></p>
-				<p>Wallet: <span id="sysWalletName"></span></p>
+			<h1>
+				slimduet Cole Wallet SIM card pairing
+				<small>
+					Card Id: <span class="sysCardId"></span>   Wallet: <span id="sysWalletName"></span>
+				</small>
 			</h1>
 		</section>
 		
 		<!-- Main content -->
 		<section class="content">
-			
+
+			<div class="alert alert-info alert-dismissible"><!-- info window -->
+				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+				<h4><i class="icon fa fa-info"></i> Information</h4>
+				<ul>
+					<li>By clicking the Pair button below, you will get a pairing code, please launch the STK menu on your phone, click the Pair APP item, enter the pairing code to complete the pairing process</li>
+					<li>Once the pairing process is completed, you will be ablt to manage your wallet and perform transaction with slimduet Cold Wallet SIM card</li>
+				</ul>
+			</div><!-- info window -->
+			<div class="col-lg-6 col-xs-12" style="padding:0px 0px 0px 0px;margin-bottom:15px;">
+				<button type="button" class="btn btn-block btn-primary btn-lg" onclick="doPairCard();">Pair with my slimduet Cold Wallet SIM card</button>
+			</div>
 		</section><!-- /.content -->
 	</div><!-- /.content-wrapper -->
 
@@ -146,7 +158,19 @@
 <script>
 	$(document).ready(function () {
 		if (beEmpty(getLocalValue("SCWSysCardId"))){
-			msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
+			//msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
 		}
 	})
+</script>
+
+<script>
+	function doPairCard(){
+		var sData = "";
+
+		getDataFromServer("https://chain.so/api/v2/get_tx/BTCTEST/38ff6ceee038b3f522e95a7c1c820e71702de058d7640637f9b0e2d937609c3f", sData, "json", function(data){
+			alert(data.data.confirmations);
+		}, true, "GET");	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+
+	}	//function doPairCard(){
+
 </script>

@@ -24,7 +24,9 @@
 <%@ page import="org.bitcoinj.core.Sha256Hash"%>
 <%@ page import="org.bitcoinj.core.ECKey.ECDSASignature"%>
 <%@ page import="org.bitcoinj.crypto.TransactionSignature"%>
+<%@ page import="org.bitcoinj.script.Script"%>
 <%@ page import="java.math.BigInteger"%>
+
 
 
 
@@ -72,8 +74,9 @@ if (beEmpty(sPublicKey)){
 
 String	sResponse	=	"";
 
-String unsignedHash = "01000000013c1500b902ad2318dd3cf4a4fe671b16c9ef25434d9f42983edc9e414fe1b337000000001976a91410ea1b4418c365cc947c63c7d876bed8c1ee557c88acffffffff01905f0100000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88ac00000000";
-String sAddress = "mh4PZ8QycSA3xyxh7PynfB9L7siBcrZvjJ";
+String unsignedHash = "0100000002ddff6a05030bf2a8fa0d8e2a1043d05306fd200caeb622838d2a4ce911604e01000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88acffffffff550aad15cbdfe4f006c89e6b02be87492074b8bdd57340f3b7d390b1d355eab3000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88acffffffff02289a0100000000001976a91410ea1b4418c365cc947c63c7d876bed8c1ee557c88aca00f0000000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88ac00000000";
+String sAddress = "mjDsHBSbwouL1H8fzp7onN2BcC1rWLobGZ";
+sPublicKey = "03B4CFEEB44B6D0A2E8FAB410FD70FA1646DA7BE47C6B559349EA7513143BF7D54";
 
 NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_TESTNET);
 Address myAddress = Address.fromString(params, sAddress);
@@ -89,16 +92,26 @@ for (int i = 0; i < tx.getInputs().size(); i++) {
 	Sha256Hash hash = tx.hashForSignature(i, scriptPubKey, Transaction.SigHash.ALL, true);
 	out.println("<p>hash(" + String.valueOf(i) + ")= " + byte2Hex(hash.getBytes()));
 	ECKey.ECDSASignature ecSig = ecKey.sign(hash);
-	TransactionSignature txSig = new TransactionSignature(ecSig, Transaction.SigHash.ALL, true);
+	//TransactionSignature txSig = new TransactionSignature(ecSig, Transaction.SigHash.ALL, true);
+	TransactionSignature txSig = null;
+	if (i==0)
+		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("30440220355554E3F32E7377B165F3A2BB55F3E1127B4848993D40041343F762B268E21302202E0EAC1A543DE15C28F09A96E7DA013697E8ED68984AD9B4044D2D0E81A209B4")), Transaction.SigHash.ALL, true);
+	else
+		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("304402200C2AD589C02A050014BB139A37B34B00215A6251DF2B415A56F2FE2B4F6D9B1002206247BDB156105CDC629008F18A5D120F813244845F99C1DED9569C027D5E1124")), Transaction.SigHash.ALL, true);
 	if (scriptPubKey.isSentToRawPubKey()) {
+		//transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig));
+		//transactionInput.setScriptSig(Script.createInputScript(hex2Byte("3045022100B04EA8A8E84364455DADEA51A5064FC7F33D8B559F45C04F06F179C9D0C9B38C02206BE340B3B593BCE4CC6C0F6584F44FD9EDFEEA862421E9B9B16E1694C6170222")));
 		transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig));
 	} else {
 		if (!scriptPubKey.isSentToAddress()) {
 			out.println("<p>Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
 		}
-		transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig, ecKey));
+		//transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig, ecKey));
+		//transactionInput.setScriptSig(Script.createInputScript(hex2Byte("304502207D409BB4FE330BE29B993DEA81A0EDA90FC8D57B28571AE8077F2144E6A5DFF7022100FE25C18C2589DC93EFF1F86414CAD61F5B33969F034AF9095B2AF526110F7CA4"), hex2Byte(sPublicKey)));
+		transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig, ECKey.fromPublicOnly(hex2Byte(sPublicKey))));
 	}
 }
+tx.verify();
 String valueToSend = byte2Hex(tx.bitcoinSerialize());
 
 out.print("<p>valueToSend:<p>" + valueToSend);
