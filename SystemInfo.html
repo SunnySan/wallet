@@ -97,27 +97,37 @@
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
 			<h1>
-				slimduet Cole Wallet SIM card pairing
-				<small>
-					Card Id: <span class="sysCardId"></span>   Wallet: <span id="sysWalletName"></span>
-				</small>
+				System information
 			</h1>
 		</section>
 		
 		<!-- Main content -->
 		<section class="content">
 
-			<div class="alert alert-info alert-dismissible"><!-- info window -->
-				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-				<h4><i class="icon fa fa-info"></i> Information</h4>
-				<ul>
-					<li>By clicking the Pair button below, you will get a pairing code, please launch the STK menu on your phone, click the Pair APP item, enter the pairing code to complete the pairing process</li>
-					<li>Once the pairing process is completed, you will be ablt to manage your wallet and perform transaction with slimduet Cold Wallet SIM card</li>
-				</ul>
-			</div><!-- info window -->
-			<div class="col-lg-6 col-xs-12" style="padding:0px 0px 0px 0px;margin-bottom:15px;">
-				<button type="button" class="btn btn-block btn-primary btn-lg" onclick="doPairCard();">Pair with my slimduet Cold Wallet SIM card</button>
-			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title">APP and Cold Wallet SIM Card</h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+							<table class="table table-bordered">
+								<tbody>
+									<tr>
+										<td>App ID</td>
+										<td><span class="sysAppId"></span></td>
+									</tr>
+									<tr>
+										<td>Paired card ID</td>
+										<td><span class="sysCardId"></span></td>
+									</tr>
+								</tbody>
+							</table>
+						</div><!-- /.box-body -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+			</div><!-- row -->
+
 		</section><!-- /.content -->
 	</div><!-- /.content-wrapper -->
 
@@ -157,70 +167,6 @@
 
 <script>
 	$(document).ready(function () {
-		if (beEmpty(getLocalValue("SCWSysCardId"))){
-			//msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
-		}
 	})
 </script>
 
-<script>
-	var appId = "";
-	var bPaired = false;
-	var timerId = 0;
-	
-	function doPairCard(){
-		var sData = "";
-
-		getDataFromServer("aGetCardPairCode.jsp", sData, "json", function(data){
-			if (!data.resultCode || !data.resultText){
-				msgBox("Unable to get process result.");
-				return;
-			}else{
-				if (data.resultCode=="00000"){
-					appId = data.appId;
-					var pairCode = data.pairCode;
-					if (notEmpty(appId) && notEmpty(pairCode)){
-						setLocalValue("SCWSysAppId", appId, 365);
-						msgBox("Please launch STK menu on your phone, click Pair APP and enter " + pairCode + " in 20 minutes.");
-						timerId = setInterval(checkPaired, 5000);
-					}else{
-						msgBox("Unable to obtain pair code, please try again later!");
-					}
-				}else{
-					msgBox("Process failed:<br>" + data.resultText);
-				}
-			}
-		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
-
-	}	//function doPairCard(){
-
-	function checkPaired(){
-		var sData = "";
-		//console.log("check pairing status");
-		if (bPaired || beEmpty(appId)) return;
-		//console.log("check pairing status");
-		sData = "appid=" + appId;
-		getDataFromServer("aCheckCardPaired.jsp", sData, "json", function(data){
-			if (!data.resultCode || !data.resultText){
-				//msgBox("Unable to get process result.");
-				return;
-			}else{
-				if (data.resultCode=="00000"){
-					var cardId = data.cardId;
-					if (notEmpty(cardId)){
-						bPaired = true;
-						setLocalValue("SCWSysCardId", cardId, 365);
-						clearInterval(timerId);
-						msgBox("Your slimduet Cold Wallet SIM card is paired successfully.");
-					}else{
-						//msgBox("Unable to obtain pair code, please try again later!");
-					}
-				}else{
-					//msgBox("Process failed:<br>" + data.resultText);
-				}
-			}
-		}, false, "POST");	//getDataFromServer("xxx.jsp", sData, "json", function(data){
-
-	}	//function doPairCard(){
-
-</script>

@@ -190,6 +190,20 @@ public String generateRequestId(){
 }
 
 /*********************************************************************************************************************/
+
+//產生Random number
+public String generateRandomNuber(int numLength){
+	String n = "1";
+	for (int i=1;i<=numLength;i++){
+		n = n + "0";
+	}
+	String txtRandom = String.valueOf(Math.round(Math.random()*Integer.parseInt(n)));
+	txtRandom = MakesUpZero(txtRandom, numLength);	//不足4碼的話，將前面補0
+
+	return txtRandom;
+}
+
+/*********************************************************************************************************************/
 //寫入檔案
 public java.lang.Boolean writeToFile(String sFilePath, String content){
 	//content是寫入的內容

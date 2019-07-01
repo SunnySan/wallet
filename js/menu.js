@@ -12,8 +12,9 @@ $(document).ready(function() {
 	}
 	document.title=(DocumentTitle);
 	$('.sysCardId').text(getLocalValue("SCWSysCardId"));
-	$('#sysWalletName').text(getLocalValue("SCWSysWalletName"));
-	$('#sysCurrencyName').text(getLocalValue("SCWSysCurrencyName"));
+	$('.sysAppId').text(getLocalValue("SCWSysAppId"));
+	$('.sysWalletName').text(getLocalValue("SCWSysWalletName"));
+	$('.sysCurrencyName').text(getLocalValue("SCWSysCurrencyName"));
 	$('#sysLogoMini').text(SystemLogoMini);
 	$('#sysLogoLarge').text(SystemLogoLarge);
 	generateMenu();
@@ -27,7 +28,7 @@ function generateMenu(){
 	thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
 	s = "";
 	s += "<li" + (thisPageName=="CheckBalance.html"?" class='active'":"") + "><a href='CheckBalance.html'><i class='fa fa-hand-o-up'></i> Check Balance</a></li>";
-	s += "<li class='treeview" + (thisPageName=="WalletList.html"||thisPageName=="WalletCreate.html"?" class='active'":"") + "'>";
+	s += "<li class='treeview" + (thisPageName=="WalletList.html"||thisPageName=="WalletCreate.html"?" active":"") + "'>";
 	s += "	<a href='#'>";
 	s += "		<i class='fa fa-edit'></i>";
 	s += "		<span>Wallet Management</span>";
@@ -40,7 +41,7 @@ function generateMenu(){
 	s += "		<li" + (thisPageName=="WalletCreate.html"?" class='active'":"") + "><a href='WalletCreate.html'><i class='fa fa-circle-o'></i> Create Wallet</a></li>";
 	s += "	</ul>";
 	s += "</li>";
-	s += "<li class='treeview" + (thisPageName=="PairCard.html"?" active":"") + "'>";
+	s += "<li class='treeview" + (thisPageName=="PairCard.html"||thisPageName=="SystemInfo.html"?" active":"") + "'>";
 	s += "	<a href='#'>";
 	s += "		<i class='fa fa-gear'></i>";
 	s += "		<span>Settings</span>";
@@ -50,6 +51,7 @@ function generateMenu(){
 	s += "	</a>";
 	s += "	<ul class='treeview-menu'>";
 	s += "		<li" + (thisPageName=="PairCard.html"?" class='active'":"") + "><a href='PairCard.html'><i class='fa fa-circle-o'></i> Pair Cold Wallet SIM</a></li>";
+	s += "		<li" + (thisPageName=="SystemInfo.html"?" class='active'":"") + "><a href='SystemInfo.html'><i class='fa fa-circle-o'></i> System Information</a></li>";
 	s += "	</ul>";
 	s += "</li>";
 
