@@ -3,17 +3,17 @@ var SystemLogoMini		= "SCW";
 var SystemLogoLarge		= "slimduet Cold Wallet";
 
 $(document).ready(function() {
-	if (beEmpty(getLocalValue("SCWSysCardId"))){	//Couldn't find the paired Card ID
+	if (beEmpty(getLocalValue("SCWSysAppId")) || beEmpty(getLocalValue("SCWSysCardId"))){	//Couldn't find the paired Card ID
 		thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
 		if (thisPageName!="index.html" && thisPageName!="PairCard.html"){
-			location.href="PairCard.html";
+			location.href="index.html";
 			return;
 		}
 	}
 	document.title=(DocumentTitle);
 	$('.sysCardId').text(getLocalValue("SCWSysCardId"));
 	$('.sysAppId').text(getLocalValue("SCWSysAppId"));
-	$('.sysWalletName').text(getLocalValue("SCWSysWalletName"));
+	$('.sysWalletId').text(getLocalValue("SCWSysWalletId"));
 	$('.sysCurrencyName').text(getLocalValue("SCWSysCurrencyName"));
 	$('#sysLogoMini').text(SystemLogoMini);
 	$('#sysLogoLarge').text(SystemLogoLarge);
@@ -28,6 +28,8 @@ function generateMenu(){
 	thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
 	s = "";
 	s += "<li" + (thisPageName=="CheckBalance.html"?" class='active'":"") + "><a href='CheckBalance.html'><i class='fa fa-hand-o-up'></i> Check Balance</a></li>";
+	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-circle-o'></i> My Wallet</a></li>";
+	/**
 	s += "<li class='treeview" + (thisPageName=="WalletList.html"||thisPageName=="WalletCreate.html"?" active":"") + "'>";
 	s += "	<a href='#'>";
 	s += "		<i class='fa fa-edit'></i>";
@@ -41,6 +43,7 @@ function generateMenu(){
 	s += "		<li" + (thisPageName=="WalletCreate.html"?" class='active'":"") + "><a href='WalletCreate.html'><i class='fa fa-circle-o'></i> Create Wallet</a></li>";
 	s += "	</ul>";
 	s += "</li>";
+	*/
 	s += "<li class='treeview" + (thisPageName=="PairCard.html"||thisPageName=="SystemInfo.html"?" active":"") + "'>";
 	s += "	<a href='#'>";
 	s += "		<i class='fa fa-gear'></i>";

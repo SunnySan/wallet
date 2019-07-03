@@ -97,10 +97,7 @@
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
 			<h1>
-				slimduet Cole Wallet SIM card pairing
-				<small>
-					Card Id: <span class="sysCardId"></span>   Wallet: <span id="sysWalletName"></span>
-				</small>
+				Wallet Management
 			</h1>
 		</section>
 		
@@ -111,13 +108,64 @@
 				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
 				<h4><i class="icon fa fa-info"></i> Information</h4>
 				<ul>
-					<li>By clicking the Pair button below, you will get a pairing code, please launch the STK menu on your phone, click the Pair APP item, enter the pairing code to complete the pairing process</li>
-					<li>Once the pairing process is completed, you will be ablt to manage your wallet and perform transaction with slimduet Cold Wallet SIM card</li>
+					<li>Once you have paired this application with your Cold Wallet SIM card, you can create new wallet or check the existing wallets on the card</li>
+					<li>Before you make any transaction, you have to select a wallet first</li>
+					<li>When you click Create new wallet, rename or delete, you have to launch STK menu on your phone, click Sync Job, after confirming the job, you may click the Refresh button below to update the wallet list</li>
 				</ul>
 			</div><!-- info window -->
-			<div class="col-lg-6 col-xs-12" style="padding:0px 0px 0px 0px;margin-bottom:15px;">
-				<button type="button" class="btn btn-block btn-primary btn-lg" onclick="doPairCard();">Pair with my slimduet Cold Wallet SIM card</button>
-			</div>
+
+			<div class="row">
+				<div class="col-lg-6 col-xs-12">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title">Wallet(s) in card <span class="sysCardId"></span><button type="button" class="btn btn-primary btn-sm" style="margin-left:15px;" onclick="getWalletList();">Refresh</button></h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+							<table class="table table-bordered" id="tblResult">
+								<thead>
+									<tr>
+										<th style="width: 10px">#</th>
+										<th>Wallet name</th>
+										<th style="width: 40px">Select</th>
+										<th style="width: 40px">Rename</th>
+										<th style="width: 40px">Delete</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div><!-- /.box-body -->
+						<div class="box-footer clearfix">
+							<div class="col-lg-12 col-xs-12">
+								<button type="button" class="btn btn-block btn-primary btn-lg" onclick="doAction('', 'C');">Create new wallet</button>
+							</div>
+						</div><!-- /.box-footer -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+			</div><!-- row -->
+
+			<!-- Modal -->
+			<div class="modal modal-danger fade" id="confirmDelete">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">Danger Action</h4>
+						</div>
+						<div class="modal-body">
+							<p>Are you sure you want to delete wallet [<span id="walletNameToBeDeleted"></span>]? This job cannot be undone.</p>
+							<input type="hidden" id="walletIdToBeDeleted">
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Cancel</button>
+							<button type="button" class="btn btn-outline" onclick="doDelete();">Yes, I want to delete this wallet</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+
+
 		</section><!-- /.content -->
 	</div><!-- /.content-wrapper -->
 
@@ -157,70 +205,102 @@
 
 <script>
 	$(document).ready(function () {
-		if (beEmpty(getLocalValue("SCWSysCardId"))){
-			//msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
-		}
+		getWalletList();
 	})
 </script>
 
 <script>
-	var appId = "";
-	var bPaired = false;
-	var timerId = 0;
-	
-	function doPairCard(){
-		var sData = "";
+	function checkAppAndCard(){
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		if (beEmpty(appId) || beEmpty(cardId)){
+			msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
+			return false;
+		}else{
+			return true;
+		}
+	}
 
-		getDataFromServer("aGetCardPairCode.jsp", sData, "json", function(data){
+	function getWalletList(){
+		if (!checkAppAndCard()) return;
+		$("#tblResult tbody").empty();
+		var sData = "";
+		var s = "";
+		var tmp = "";
+
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		var walletId = getLocalValue("SCWSysWalletId");
+		sData = "appid=" + appId;
+		sData += "&cardid=" + cardId;
+
+		getDataFromServer("aGetWalletList.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get wallet list.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					s = "";
+					$.each( data.records, function(i, r) {
+						s += "<td style='text-align:center;'>" + r.Wallet_Id + "</td>";
+						s += "<td style='padding-left:5px;'>" + ((notEmpty(walletId)&&walletId==r.Wallet_Id)?"(*)&nbsp;":"") + r.Wallet_Name + "</td>";
+						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' onclick='doSelect(\"" + r.Wallet_Id + "\", \"" + r.Wallet_Name + "\");'>Select</button>" + "</td>";
+						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' onclick='doRename(\"" + r.Wallet_Id + "\", \"" + r.Wallet_Name + "\");'>Rename</button>" + "</td>";
+						s += "<td>" + "<button type='button' class='btn btn-danger btn-sm' data-toggle='modal' data-target='#confirmDelete' onclick='$(\"#walletIdToBeDeleted\").val(\"" + r.Wallet_Id + "\");$(\"#walletNameToBeDeleted\").text(\"" + r.Wallet_Name + "\");'>Delete</button>" + "</td>";
+						s += "</tr>";
+						$('#tblResult tbody').append(s);
+					});	//$.each( data.orders, function(i, r) {
+				}else if (data.resultCode=="00006"){
+					msgBox("No wallet had been created for this card");
+				}else{
+					msgBox("Failed to get wallet list:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
+
+	function doDelete(walletId){
+		$('#confirmDelete').modal('hide');
+		alert($("#walletIdToBeDeleted").val());
+		doAction($("#walletIdToBeDeleted").val(), "D");
+	}
+
+	function doAction(walletId, walletName, actionId){
+		if (!checkAppAndCard()) return;
+		
+		var sData = "";
+		var s = "";
+		var tmp = "";
+
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		sData = "appid=" + appId;
+		sData += "&cardid=" + cardId;
+		sData += "&action=" + actionId;
+		if (actionId!="C"){	//C=Create, R=Rename, D=Delete
+			sData += "&walletid=" + walletId;
+		}
+
+		getDataFromServer("aWalletManipulation.jsp", sData, "json", function(data){
 			if (!data.resultCode || !data.resultText){
 				msgBox("Unable to get process result.");
 				return;
 			}else{
 				if (data.resultCode=="00000"){
-					appId = data.appId;
-					var pairCode = data.pairCode;
-					if (notEmpty(appId) && notEmpty(pairCode)){
-						setLocalValue("SCWSysAppId", appId, 365);
-						msgBox("Please launch STK menu on your phone, click Pair APP and enter " + pairCode + " in 20 minutes.");
-						timerId = setInterval(checkPaired, 5000);
-					}else{
-						msgBox("Unable to obtain pair code, please try again later!");
-					}
+					msgBox("Please launch STK on your phone, click [Sync with server] to resume this job, after the job is done on the phone, get back to this page and click [Refresh] to get the new wallet list");
 				}else{
-					msgBox("Process failed:<br>" + data.resultText);
+					msgBox("Operation failed:<br>" + data.resultText);
 				}
 			}
+
 		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
 
-	}	//function doPairCard(){
-
-	function checkPaired(){
-		var sData = "";
-		//console.log("check pairing status");
-		if (bPaired || beEmpty(appId)) return;
-		//console.log("check pairing status");
-		sData = "appid=" + appId;
-		getDataFromServer("aCheckCardPaired.jsp", sData, "json", function(data){
-			if (!data.resultCode || !data.resultText){
-				//msgBox("Unable to get process result.");
-				return;
-			}else{
-				if (data.resultCode=="00000"){
-					var cardId = data.cardId;
-					if (notEmpty(cardId)){
-						bPaired = true;
-						setLocalValue("SCWSysCardId", cardId, 365);
-						clearInterval(timerId);
-						msgBox("Your slimduet Cold Wallet SIM card is paired successfully. Now you can <a href='WalletManagement.html'>create your wallet</a>, or <a href='WalletManagement.html'>check the existing wallets</a> on the card.");
-					}else{
-						//msgBox("Unable to obtain pair code, please try again later!");
-					}
-				}else{
-					//msgBox("Process failed:<br>" + data.resultText);
-				}
-			}
-		}, false, "POST");	//getDataFromServer("xxx.jsp", sData, "json", function(data){
-
-	}	//function doPairCard(){
-
+	function doSelect(walletId, walletName){
+		if (!checkAppAndCard()) return;
+		setLocalValue("SCWSysWalletId", walletId, 365);
+		msgBox("The wallet [" + walletName + "] has been selected", getWalletList);
+	}
 </script>
+
