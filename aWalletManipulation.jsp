@@ -35,9 +35,10 @@ JSONObject	obj=new JSONObject();
 /*********************開始做事吧*********************/
 String appId		= nullToString(request.getParameter("appid"), "");
 String cardId		= nullToString(request.getParameter("cardid"), "");
-String action		= nullToString(request.getParameter("action"), "");	//C=Create, R=Rename, D=Delete
+String action		= nullToString(request.getParameter("action"), "");	//C=Create, R=Rename, D=Delete, A=Add currency to wallet
 String walletId		= nullToString(request.getParameter("walletid"), "");
 String walletName	= nullToString(request.getParameter("walletname"), "");
+String currencyId	= nullToString(request.getParameter("currencyid"), "");	//Add currency to wallet時使用
 
 writeLog("debug", "Do wallet manipulation, appId=" + appId + ", cardId=" + cardId + ", action=" + action + ", walletId=" + walletId + ", walletName=" + walletName);
 
@@ -50,7 +51,7 @@ if (beEmpty(appId) || appId.length()!=16 || beEmpty(cardId) || cardId.length()!=
 	return;
 }
 
-if ((action.equals("D") && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName)))){
+if (((action.equals("D")||action.equals("A")) && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName))) || (action.equals("A") && beEmpty(currencyId))){
 	writeLog("debug", "Return: " + gcResultCodeParametersNotEnough + ", " + gcResultTextParametersNotEnough);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);
@@ -98,6 +99,9 @@ if (action.equals("R")){	//Rename
 if (action.equals("D")){	//Delete
 }
 
+if (action.equals("A")){	//Add currency to wallet
+}
+
 sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
@@ -109,7 +113,7 @@ sSQL += "'" + appId + "',";
 sSQL += "'" + cardId + "',";
 sSQL += "'" + walletId + "',";
 sSQL += "'" + walletName + "',";
-sSQL += "'" + "" + "',";
+sSQL += "'" + currencyId + "',";
 sSQL += "'" + "" + "',";
 sSQL += "'" + "Init" + "'";
 sSQL += ")";

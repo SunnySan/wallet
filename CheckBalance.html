@@ -114,6 +114,37 @@
 				</ul>
 			</div><!-- info window -->
 
+			<div id="existingCurrencies">
+			</div>
+
+			<div class="row">
+				<div class="col-lg-6 col-xs-12">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title">Add new currency</h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+
+							<div class="form-group">
+								<label>Available currencies</label>
+								<select class="form-control" id="selCurrency">
+									<option value="">Select a currency</option>
+									<option value="BTC">Bitcoin</option>
+									<option value="BTCTEST">Bitcoin (Testnet)</option>
+									<option value="ETH">Ethereum</option>
+									<option value="ETHTEST">Ethereum (Testnet)</option>
+								</select>
+							</div>
+
+						</div><!-- /.box-body -->
+						<div class="box-footer clearfix">
+							<div class="col-lg-12 col-xs-12">
+								<button type="button" id="btnAdd" class="btn btn-block btn-primary btn-lg" onclick="doAddCurrency();">Add</button>
+							</div>
+						</div><!-- /.box-footer -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+			</div><!-- row -->
 
 
 		</section><!-- /.content -->
@@ -172,6 +203,7 @@
 	}
 
 	var currencyData = null;
+	var currencyCount = 0;
 	function getCurrencyOfWallet(){
 		if (!checkAppAndCard()) return;
 
@@ -221,11 +253,17 @@
 						s += "						<h5 class='description-header' id='c" + r.id + "-1'></h5>";
 						s += "						<span class='description-text'>Confirmed</span>";
 						s += "					</div><!-- /.description-block -->";
+						s += "					<div class='description-block'>";
+						s += "						<button type='button' class='btn btn-block btn-warning btn-sm' onclick='doSend(\"" + r.id + "\");'>Send</button>";
+						s += "					</div><!-- /.description-block -->";
 						s += "				</div><!-- /.col -->";
 						s += "				<div class='col-sm-6 border-right'>";
 						s += "					<div class='description-block'>";
 						s += "						<h5 class='description-header' id='c" + r.id + "-2'></h5>";
 						s += "						<span class='description-text'>Unconfirmed</span>";
+						s += "					<div class='description-block'>";
+						s += "						<button type='button' class='btn btn-block btn-success btn-sm' onclick='doReceive(\"" + r.id + "\");'>Receive</button>";
+						s += "					</div><!-- /.description-block -->";
 						s += "					</div><!-- /.description-block -->";
 						s += "				</div><!-- /.col -->";
 						s += "			</div><!-- /.row -->";
@@ -234,10 +272,12 @@
 						s += "</div><!-- col -->";
 						if (j%3==2){s += "</div>";};
 						j++;
+						currencyCount++;
 					});	//$.each( data.orders, function(i, r) {
 					if (j%3!=0){s += "</div>";};
-					$('.content').append(s);
+					$('#existingCurrencies').append(s);
 					getBalances();
+					if (currencyCount>0) removeCurrencyFromSelectOption();
 				}else if (data.resultCode=="00006"){
 					msgBox("No currency had been created for this wallet");
 				}else{
@@ -264,9 +304,75 @@
 			}
 			$('#c' + recordId + '-1').text(data.data.confirmed_balance);
 			$('#c' + recordId + '-2').text(data.data.unconfirmed_balance);
+		})
+		.fail(function(d) {
+			$('#c' + recordId + '-1').text(d.status + ':' + d.statusText);
+			$('#c' + recordId + '-1').css("text-decoration", "line-through");
+			$('#c' + recordId + '-2').text(d.status + ':' + d.statusText);
+			$('#c' + recordId + '-2').css("text-decoration", "line-through");
 		});	//$.getJSON( "./point.json", function(data) { 
 
+	}
+	
+	function removeCurrencyFromSelectOption(){
+		$.each( currencyData.records, function(i, r) {
+			$("#selCurrency option[value=" + r.Currency_Id + "]").each(function() {
+				$(this).remove();
+			});
+		});	//$.each( data.orders, function(i, r) {
+		//if (currencyCount==)
+		if($('select#selCurrency option').length==1){
+			$('#btnAdd').text("This wallet contains all the supported currencies");
+			$('#btnAdd').attr('disabled', true);;
+		}
+	}
 
+	function doAddCurrency(){
+		if (!checkAppAndCard()) return;
+		
+		var sData = "";
+		var s = "";
+		var tmp = "";
+
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		var walletId = getLocalValue("SCWSysWalletId");
+
+		if (beEmpty(walletId)){
+			msgBox("Please select a wallet first. Click OK, we'll take you to My Wallet page to select a wallet.", function(){location.href="WalletManagement.html";});
+			return;
+		}
+		
+		var currency = $('#selCurrency').val();
+		if (beEmpty(currency)){
+			msgBox("Please select a currency first");
+			return;
+		}
+
+		sData = "appid=" + appId;
+		sData += "&cardid=" + cardId;
+		sData += "&action=A";
+		sData += "&walletid=" + walletId;
+		sData += "&currencyid=" + currency;
+
+
+		getDataFromServer("aWalletManipulation.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get process result.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					msgBox("Please launch STK on your phone, click [Sync with server] to resume this job, after the job is done on the phone, get back to this page and click [Refresh] to get the new wallet list");
+				}else{
+					msgBox("Operation failed:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
+
+	function doReceive(id){
+		alert(id);
 	}
 </script>
 
