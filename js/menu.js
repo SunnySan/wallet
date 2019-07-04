@@ -4,7 +4,9 @@ var SystemLogoLarge		= "slimduet Cold Wallet";
 
 $(document).ready(function() {
 	if (beEmpty(getLocalValue("SCWSysAppId")) || beEmpty(getLocalValue("SCWSysCardId"))){	//Couldn't find the paired Card ID
-		thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
+		var thisPageName = "";
+		if (document.location.pathname.contains(".html") || document.location.pathname.contains(".jsp")) thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
+		if (beEmpty(thisPageName)) thisPageName = "index.html";
 		if (thisPageName!="index.html" && thisPageName!="PairCard.html"){
 			location.href="index.html";
 			return;
@@ -14,6 +16,7 @@ $(document).ready(function() {
 	$('.sysCardId').text(getLocalValue("SCWSysCardId"));
 	$('.sysAppId').text(getLocalValue("SCWSysAppId"));
 	$('.sysWalletId').text(getLocalValue("SCWSysWalletId"));
+	$('.sysWalletName').text(getLocalValue("SCWSysWalletName"));
 	$('.sysCurrencyName').text(getLocalValue("SCWSysCurrencyName"));
 	$('#sysLogoMini').text(SystemLogoMini);
 	$('#sysLogoLarge').text(SystemLogoLarge);
@@ -23,9 +26,11 @@ $(document).ready(function() {
 
 function generateMenu(){
 	var s	= "";
-	
+
 	//以下是使用者的功能選單
-	thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
+	var thisPageName = "";
+	if (document.location.pathname.contains(".html") || document.location.pathname.contains(".jsp")) thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
+	if (beEmpty(thisPageName)) thisPageName = "index.html";
 	s = "";
 	s += "<li" + (thisPageName=="CheckBalance.html"?" class='active'":"") + "><a href='CheckBalance.html'><i class='fa fa-hand-o-up'></i> Check Balance</a></li>";
 	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-circle-o'></i> My Wallet</a></li>";

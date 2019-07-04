@@ -137,14 +137,44 @@
 						</div><!-- /.box-body -->
 						<div class="box-footer clearfix">
 							<div class="col-lg-12 col-xs-12">
-								<button type="button" class="btn btn-block btn-primary btn-lg" onclick="doAction('', 'C');">Create new wallet</button>
+								<button type="button" class="btn btn-block btn-primary btn-lg" onclick="doAction('', '', 'C');">Create new wallet</button>
 							</div>
 						</div><!-- /.box-footer -->
 					</div><!-- /.box -->
 				</div><!-- /.col -->
 			</div><!-- row -->
 
-			<!-- Modal -->
+			<!-- Modal for Rename -->
+			<div class="modal modal-info fade" id="modalRename">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">Rename wallet</h4>
+						</div>
+						<div class="modal-body">
+							<form>
+								<div class="form-group">
+									<label for="recipient-name" class="col-form-label">Old name:</label>
+									<input type="text" class="form-control" id="OldWalletNameToBeRenamed" disabled>
+								</div>
+								<div class="form-group">
+									<label for="recipient-name" class="col-form-label">New name:</label>
+									<input type="text" class="form-control" id="NewWalletName">
+								</div>
+								<input type="hidden" id="walletIdToBeRenamed">
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Cancel</button>
+							<button type="button" class="btn btn-outline" onclick="doRename();">Rename this wallet</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+
+			<!-- Modal for Delete -->
 			<div class="modal modal-danger fade" id="confirmDelete">
 				<div class="modal-dialog">
 					<div class="modal-content">
@@ -154,7 +184,7 @@
 							<h4 class="modal-title">Danger Action</h4>
 						</div>
 						<div class="modal-body">
-							<p>Are you sure you want to delete wallet [<span id="walletNameToBeDeleted"></span>]? This job cannot be undone.</p>
+							<p>Are you sure you want to delete wallet [<span id="walletNameToBeDeleted"></span>]? This job cannot be undone. Please make sure you have written down the mnemonic words before deleting the wallet.</p>
 							<input type="hidden" id="walletIdToBeDeleted">
 						</div>
 						<div class="modal-footer">
@@ -242,14 +272,15 @@
 				if (data.resultCode=="00000"){
 					s = "";
 					$.each( data.records, function(i, r) {
+						s += "<tr>";
 						s += "<td style='text-align:center;'>" + r.Wallet_Id + "</td>";
 						s += "<td style='padding-left:5px;'>" + ((notEmpty(walletId)&&walletId==r.Wallet_Id)?"(*)&nbsp;":"") + r.Wallet_Name + "</td>";
 						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' onclick='doSelect(\"" + r.Wallet_Id + "\", \"" + r.Wallet_Name + "\");'>Select</button>" + "</td>";
-						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' onclick='doRename(\"" + r.Wallet_Id + "\", \"" + r.Wallet_Name + "\");'>Rename</button>" + "</td>";
+						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' data-toggle='modal' data-target='#modalRename' onclick='$(\"#walletIdToBeRenamed\").val(\"" + r.Wallet_Id + "\");$(\"#OldWalletNameToBeRenamed\").val(\"" + r.Wallet_Name + "\");'>Rename</button>" + "</td>";
 						s += "<td>" + "<button type='button' class='btn btn-danger btn-sm' data-toggle='modal' data-target='#confirmDelete' onclick='$(\"#walletIdToBeDeleted\").val(\"" + r.Wallet_Id + "\");$(\"#walletNameToBeDeleted\").text(\"" + r.Wallet_Name + "\");'>Delete</button>" + "</td>";
 						s += "</tr>";
-						$('#tblResult tbody').append(s);
 					});	//$.each( data.orders, function(i, r) {
+					$('#tblResult tbody').append(s);
 				}else if (data.resultCode=="00006"){
 					msgBox("No wallet had been created for this card");
 				}else{
@@ -260,10 +291,22 @@
 		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
 	}
 
-	function doDelete(walletId){
+	function doRename(){
+		$('#modalRename').modal('hide');
+		if (beEmpty($("#walletIdToBeRenamed").val()) || beEmpty($("#NewWalletName").val())){
+			msgBox("Please specify which wallet you want to rename and enter the new name of this wallet.");
+			return;
+		}
+		doAction($("#walletIdToBeRenamed").val(), $("#NewWalletName").val(), "R");
+	}
+
+	function doDelete(){
 		$('#confirmDelete').modal('hide');
-		alert($("#walletIdToBeDeleted").val());
-		doAction($("#walletIdToBeDeleted").val(), "D");
+		if (beEmpty($("#walletIdToBeDeleted").val())){
+			msgBox("Please specify which wallet you want to delete.");
+			return;
+		}
+		doAction($("#walletIdToBeDeleted").val(), "", "D");
 	}
 
 	function doAction(walletId, walletName, actionId){
@@ -278,8 +321,13 @@
 		sData = "appid=" + appId;
 		sData += "&cardid=" + cardId;
 		sData += "&action=" + actionId;
+
 		if (actionId!="C"){	//C=Create, R=Rename, D=Delete
 			sData += "&walletid=" + walletId;
+		}
+
+		if (actionId=="R"){	//C=Create, R=Rename, D=Delete
+			sData += "&walletname=" + walletName;
 		}
 
 		getDataFromServer("aWalletManipulation.jsp", sData, "json", function(data){
@@ -300,6 +348,7 @@
 	function doSelect(walletId, walletName){
 		if (!checkAppAndCard()) return;
 		setLocalValue("SCWSysWalletId", walletId, 365);
+		setLocalValue("SCWSysWalletName", walletName, 365);
 		msgBox("The wallet [" + walletName + "] has been selected", getWalletList);
 	}
 </script>

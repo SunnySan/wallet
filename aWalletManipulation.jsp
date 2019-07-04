@@ -37,8 +37,21 @@ String appId		= nullToString(request.getParameter("appid"), "");
 String cardId		= nullToString(request.getParameter("cardid"), "");
 String action		= nullToString(request.getParameter("action"), "");	//C=Create, R=Rename, D=Delete
 String walletId		= nullToString(request.getParameter("walletid"), "");
+String walletName	= nullToString(request.getParameter("walletname"), "");
+
+writeLog("debug", "Do wallet manipulation, appId=" + appId + ", cardId=" + cardId + ", action=" + action + ", walletId=" + walletId + ", walletName=" + walletName);
 
 if (beEmpty(appId) || appId.length()!=16 || beEmpty(cardId) || cardId.length()!=16 || beEmpty(action)){
+	writeLog("debug", "Return: " + gcResultCodeParametersNotEnough + ", " + gcResultTextParametersNotEnough);
+	obj.put("resultCode", gcResultCodeParametersNotEnough);
+	obj.put("resultText", gcResultTextParametersNotEnough);
+	out.print(obj);
+	out.flush();
+	return;
+}
+
+if ((action.equals("D") && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName)))){
+	writeLog("debug", "Return: " + gcResultCodeParametersNotEnough + ", " + gcResultTextParametersNotEnough);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);
 	out.print(obj);
@@ -84,6 +97,28 @@ if (action.equals("R")){	//Rename
 
 if (action.equals("D")){	//Delete
 }
+
+sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
+sSQL += "'" + sUser + "',";
+sSQL += "'" + sDate + "',";
+sSQL += "'" + sUser + "',";
+sSQL += "'" + sDate + "',";
+sSQL += "'" + generateRequestId() + "',";
+sSQL += "'" + action + "',";
+sSQL += "'" + appId + "',";
+sSQL += "'" + cardId + "',";
+sSQL += "'" + walletId + "',";
+sSQL += "'" + walletName + "',";
+sSQL += "'" + "" + "',";
+sSQL += "'" + "" + "',";
+sSQL += "'" + "Init" + "'";
+sSQL += ")";
+
+sSQLList.add(sSQL);
+
+ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);
+sResultCode = ht.get("ResultCode").toString();
+sResultText = ht.get("ResultText").toString();
 
 obj.put("resultCode", sResultCode);
 obj.put("resultText", sResultText);
