@@ -32,8 +32,11 @@ function generateMenu(){
 	if (document.location.pathname.contains(".html") || document.location.pathname.contains(".jsp")) thisPageName = document.location.pathname.match(/[^\/]+$/)[0];
 	if (beEmpty(thisPageName)) thisPageName = "index.html";
 	s = "";
-	s += "<li" + (thisPageName=="CheckBalance.html"?" class='active'":"") + "><a href='CheckBalance.html'><i class='fa fa-hand-o-up'></i> Check Balance</a></li>";
-	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-circle-o'></i> My Wallet</a></li>";
+	s += "<li" + (thisPageName=="CheckBalance.html"?" class='active'":"") + "><a href='CheckBalance.html'><i class='fa fa-balance-scale'></i> Check Balance</a></li>";
+	s += "<li" + (thisPageName=="ReceiveMoney.html"?" class='active'":"") + "><a href='ReceiveMoney.html'><i class='fa fa-download'></i> Receive Money</a></li>";
+	s += "<li" + (thisPageName=="SendMoney.html"?" class='active'":"") + "><a href='SendMoney.html'><i class='fa fa-upload'></i> Send Money</a></li>";
+	s += "<li" + (thisPageName=="TransactionHistory.html"?" class='active'":"") + "><a href='TransactionHistory.html'><i class='fa fa-table'></i> Transaction History</a></li>";
+	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-columns'></i> My Wallet</a></li>";
 	/**
 	s += "<li class='treeview" + (thisPageName=="WalletList.html"||thisPageName=="WalletCreate.html"?" active":"") + "'>";
 	s += "	<a href='#'>";

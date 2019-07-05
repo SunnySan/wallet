@@ -349,7 +349,12 @@
 		if (!checkAppAndCard()) return;
 		setLocalValue("SCWSysWalletId", walletId, 365);
 		setLocalValue("SCWSysWalletName", walletName, 365);
-		msgBox("The wallet [" + walletName + "] has been selected", getWalletList);
+		setLocalValue("SCWSysCurrencyRowId", "", 365);
+		setLocalValue("SCWSysCurrencyId", "", 365);
+		setLocalValue("SCWSysCurrencyName", "", 365);
+		setLocalValue("SCWSysCurrencyPublicKey", "", 365);
+		setLocalValue("SCWSysCurrencyAddress", "", 365);
+		msgBox("The wallet [" + walletName + "] has been selected, now please goto <a href='CheckBalance.html'>Check Balance page</a> to check balance or add currency to this wallet", getWalletList);
 	}
 </script>
 

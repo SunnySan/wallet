@@ -96,16 +96,45 @@
 	<div class="content-wrapper">
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
-			<h1 style="text-align:center;">
-				Welcome to slimduet Cole Wallet
-				<p>Card Id: <span class="sysCardId"></span></p>
-				<p>Wallet: <span class="sysWalletName"></span></p>
+			<h1>
+				Receive Money
+				<small>Your address of <span class="currencyName" style="color:#FF0000;"></span> of wallet [<span class="sysWalletName" style="color:#FF0000;"></span>] in card <span class="sysCardId" style="color:#FF0000;"></span></small>
 			</h1>
 		</section>
 		
 		<!-- Main content -->
 		<section class="content">
-			
+
+			<div class="alert alert-info alert-dismissible"><!-- info window -->
+				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+				<h4><i class="icon fa fa-info"></i> Information</h4>
+				<ul>
+					<li>You may share this address with who wants to transfer money to you</li>
+				</ul>
+			</div><!-- info window -->
+
+			<div id="existingCurrencies">
+			</div>
+
+			<div class="row">
+				<div class="col-lg-6 col-xs-12">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title"><span class="currencyName"></span>&nbsp;Address</h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+							<div id="addressQrcode"></div>
+						</div><!-- /.box-body -->
+						<div class="box-footer clearfix">
+							<div class="col-lg-12 col-xs-12">
+								<div>Address:&nbsp;<h4 class="currencyAddress"></h4></div>
+							</div>
+						</div><!-- /.box-footer -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+			</div><!-- row -->
+
+
 		</section><!-- /.content -->
 	</div><!-- /.content-wrapper -->
 
@@ -139,14 +168,50 @@
 <script type="text/javascript" src="js/jquery.cookie.js"></script><!--處理cookie，參考網頁：https://github.com/carhartl/jquery-cookie -->
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/menu.js"></script>
+<script type="text/javascript" src="js/qrcode.js"></script><!-- 產生 QR Code -->
 
 <!-- Select2 -->
 <script src="bower_components/select2/dist/js/select2.full.min.js"></script>
 
 <script>
 	$(document).ready(function () {
-		if (beEmpty(getLocalValue("SCWSysCardId"))){
-			msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
-		}
+		checkAppCardWalletAndCurrency();
 	})
 </script>
+
+<script>
+	function checkAppCardWalletAndCurrency(){
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		var walletId = getLocalValue("SCWSysWalletId");
+		var walletName = getLocalValue("SCWSysWalletName");
+		var currencyRowId = getLocalValue("SCWSysCurrencyRowId");
+		var currencyId = getLocalValue("SCWSysCurrencyId");
+		var currencyName = getLocalValue("SCWSysCurrencyName");
+		var currencyPublicKey = getLocalValue("SCWSysCurrencyPublicKey");
+		var currencyAddress = getLocalValue("SCWSysCurrencyAddress");
+		if (beEmpty(appId) || beEmpty(cardId) || beEmpty(walletId) || beEmpty(walletName) || beEmpty(currencyRowId) || beEmpty(currencyId) || beEmpty(currencyName) || beEmpty(currencyPublicKey) || beEmpty(currencyAddress)){
+			msgBox("Information not enough, please ensure you had paired this application with your card, select a wallet, and click [Receive] button on the <a href='CheckBalance.html'>Check Balance page</a>!", function(){location.href="index.html";});
+			return;
+		}else{
+			$('.currencyName').text(currencyName);
+			$('.currencyAddress').text(currencyAddress);
+			generateQrCode();
+		}
+	}
+	
+	function generateQrCode(){
+		var currencyId = getLocalValue("SCWSysCurrencyId");
+		var currencyAddress = getLocalValue("SCWSysCurrencyAddress");
+		
+		var leadingText = "";
+		if (currencyId=="BTC" || currencyId=="BTCTEST"){
+			leadingText = "bitcoin:";
+		}
+		$("#addressQrcode").html("");
+		var qrcode = new QRCode("addressQrcode");
+		qrcode.makeCode(leadingText + currencyAddress);
+	}
+
+</script>
+

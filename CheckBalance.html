@@ -254,7 +254,7 @@
 						s += "						<span class='description-text'>Confirmed</span>";
 						s += "					</div><!-- /.description-block -->";
 						s += "					<div class='description-block'>";
-						s += "						<button type='button' class='btn btn-block btn-warning btn-sm' onclick='doSend(\"" + r.id + "\");'>Send</button>";
+						s += "						<button type='button' class='btn btn-block btn-warning btn-sm' onclick='doSend(\"" + r.id + "\", \"" + r.Currency_Id + "\", \"" + r.Currency_Name + "\", \"" + r.Publicy_Key + "\", \"" + r.Address + "\");'>Send</button>";
 						s += "					</div><!-- /.description-block -->";
 						s += "				</div><!-- /.col -->";
 						s += "				<div class='col-sm-6 border-right'>";
@@ -262,7 +262,7 @@
 						s += "						<h5 class='description-header' id='c" + r.id + "-2'></h5>";
 						s += "						<span class='description-text'>Unconfirmed</span>";
 						s += "					<div class='description-block'>";
-						s += "						<button type='button' class='btn btn-block btn-success btn-sm' onclick='doReceive(\"" + r.id + "\");'>Receive</button>";
+						s += "						<button type='button' class='btn btn-block btn-success btn-sm' onclick='doReceive(\"" + r.id + "\", \"" + r.Currency_Id + "\", \"" + r.Currency_Name + "\", \"" + r.Publicy_Key + "\", \"" + r.Address + "\");'>Receive</button>";
 						s += "					</div><!-- /.description-block -->";
 						s += "					</div><!-- /.description-block -->";
 						s += "				</div><!-- /.col -->";
@@ -371,8 +371,32 @@
 		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
 	}
 
-	function doReceive(id){
-		alert(id);
+	function doReceive(id, currencyId, currencyName, publicKey, address){
+		if (beEmpty(id) || beEmpty(currencyId) || beEmpty(currencyName) || beEmpty(publicKey) || beEmpty(address)){
+			msgBox("Cannot find currency information, please refresh this page and try again");
+			return;
+		}
+		setLocalValue("SCWSysCurrencyRowId", id, 365);
+		setLocalValue("SCWSysCurrencyId", currencyId, 365);
+		setLocalValue("SCWSysCurrencyName", currencyName, 365);
+		setLocalValue("SCWSysCurrencyPublicKey", publicKey, 365);
+		setLocalValue("SCWSysCurrencyAddress", address, 365);
+		
+		location.href="ReceiveMoney.html";
+	}
+
+	function doSend(id, currencyId, currencyName, publicKey, address){
+		if (beEmpty(id) || beEmpty(currencyId) || beEmpty(currencyName) || beEmpty(publicKey) || beEmpty(address)){
+			msgBox("Cannot find currency information, please refresh this page and try again");
+			return;
+		}
+		setLocalValue("SCWSysCurrencyRowId", id, 365);
+		setLocalValue("SCWSysCurrencyId", currencyId, 365);
+		setLocalValue("SCWSysCurrencyName", currencyName, 365);
+		setLocalValue("SCWSysCurrencyPublicKey", publicKey, 365);
+		setLocalValue("SCWSysCurrencyAddress", address, 365);
+		
+		location.href="SendMoney.html";
 	}
 </script>
 

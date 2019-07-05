@@ -96,16 +96,61 @@
 	<div class="content-wrapper">
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
-			<h1 style="text-align:center;">
-				Welcome to slimduet Cole Wallet
-				<p>Card Id: <span class="sysCardId"></span></p>
-				<p>Wallet: <span class="sysWalletName"></span></p>
+			<h1>
+				Send Money
+				<small>Send money with <span class="currencyName" style="color:#FF0000;"></span> of wallet [<span class="sysWalletName" style="color:#FF0000;"></span>] in card <span class="sysCardId" style="color:#FF0000;"></span></small>
 			</h1>
 		</section>
 		
 		<!-- Main content -->
 		<section class="content">
-			
+
+			<div class="alert alert-info alert-dismissible"><!-- info window -->
+				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+				<h4><i class="icon fa fa-info"></i> Information</h4>
+				<ul>
+					<li>Please enter the destination address and amount, then click Send button</li>
+				</ul>
+			</div><!-- info window -->
+
+			<div id="existingCurrencies">
+			</div>
+
+			<div class="row">
+				<div class="col-lg-6 col-xs-12">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title">Send&nbsp;<span class="currencyName"></span>&nbsp;<span id="availableMoney"></span></h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+							<form role="form">
+								<!-- text input -->
+								<div class="form-group">
+									<label>Address</label>
+									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Amount</label>
+									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Fee</label>
+									<input type="text" id="transactionFee" class="form-control" placeholder="" disabled>
+								</div>
+							</form>
+						</div><!-- /.box-body -->
+						<div class="box-footer clearfix">
+							<div class="col-lg-12 col-xs-12">
+								<button type="button" id="transactionBtn" class="btn btn-block btn-danger btn-lg" onclick="doSend();">Send</button>
+							</div>
+						</div><!-- /.box-footer -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+			</div><!-- row -->
+
+
 		</section><!-- /.content -->
 	</div><!-- /.content-wrapper -->
 
@@ -145,8 +190,92 @@
 
 <script>
 	$(document).ready(function () {
-		if (beEmpty(getLocalValue("SCWSysCardId"))){
-			msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
-		}
+		checkAppCardWalletAndCurrency();
 	})
 </script>
+
+<script>
+	var appId = "";
+	var cardId = "";
+	var walletId = "";
+	var walletName = "";
+	var currencyRowId = "";
+	var currencyId = "";
+	var currencyName = "";
+	var currencyPublicKey = "";
+	var currencyAddress = "";
+	var unspentTransaction = null;
+	var totalUnspent = 0.0;
+
+	function checkAppCardWalletAndCurrency(){
+		appId = getLocalValue("SCWSysAppId");
+		cardId = getLocalValue("SCWSysCardId");
+		walletId = getLocalValue("SCWSysWalletId");
+		walletName = getLocalValue("SCWSysWalletName");
+		currencyRowId = getLocalValue("SCWSysCurrencyRowId");
+		currencyId = getLocalValue("SCWSysCurrencyId");
+		currencyName = getLocalValue("SCWSysCurrencyName");
+		currencyPublicKey = getLocalValue("SCWSysCurrencyPublicKey");
+		currencyAddress = getLocalValue("SCWSysCurrencyAddress");
+		if (beEmpty(appId) || beEmpty(cardId) || beEmpty(walletId) || beEmpty(walletName) || beEmpty(currencyRowId) || beEmpty(currencyId) || beEmpty(currencyName) || beEmpty(currencyPublicKey) || beEmpty(currencyAddress)){
+			msgBox("Information not enough, please ensure you had paired this application with your card, select a wallet, and click [Send] button on the <a href='CheckBalance.html'>Check Balance page</a>!", function(){location.href="index.html";});
+			return;
+		}else{
+			$('.currencyName').text(currencyName);
+			//$('.currencyAddress').text(currencyAddress);
+			getUnsentTransaction();
+		}
+	}
+
+	function getUnsentTransaction(){
+		var sUrl = "";
+		var fee = 0.0;
+		if (currencyId == "BTCTEST")	sUrl = "https://chain.so/api/v2/get_tx_unspent/BTCTEST/" + currencyAddress;
+		if (currencyId == "BTC")		sUrl = "https://chain.so/api/v2/get_tx_unspent/BTC/" + currencyAddress;
+		if (currencyId == "BTCTEST" || currencyId == "BTC") fee = 0.00000168;
+
+		$.getJSON( sUrl, function(data) {
+			totalUnspent = 0.0;
+			if (beEmpty(data.status) || data.status!="success"){
+				msgBox("Fail to get unspent data for " + currencyId + ": " + currencyAddress);
+				return;
+			}
+			unspentTransaction = data.data;
+			$.each( data.data.txs, function(i, r) {
+				totalUnspent += parseFloat(r.value);
+			});	//$.each( data.data.txs, function(i, r) {
+			if (totalUnspent<fee){
+				msgBox("No available money.");
+				return;
+			}
+			totalUnspent = totalUnspent - fee;
+			totalUnspent = totalUnspent.toFixed(8);	//小數點後8位
+			$('#availableMoney').text(", available money = " + totalUnspent.toString());
+			$('#transactionFee').val(fee);
+		})
+		.fail(function(d) {
+			msgBox("Failed to get unspent money");
+			$('#availableMoney').text("Failed to get unspent money");
+		});	//$.getJSON( "./point.json", function(data) { 
+
+	}	//function getUnsentTransaction(){
+	
+	function doSend(){
+		if (!checkUnspentMoney()) return;
+	}	//function doSend(){
+	
+	function checkUnspentMoney(){
+		var amountToBeSent = parseFloat($('#amountToBeSent').val());
+		if (beEmpty($('#beneficiaryAddress').val())){
+			msgBox("Please input beneficiary address");
+			return false;
+		}
+		if (beEmpty($('#amountToBeSent').val()) || amountToBeSent>totalUnspent){
+			msgBox("Please input an amount less than " + totalUnspent.toString());
+			return false;
+		}
+
+	}	//function checkUnspentMoney(){
+	
+</script>
+
