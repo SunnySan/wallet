@@ -344,7 +344,23 @@
 			}
 		});
 
-
+			var a = ($(".address",o).val());
+			var ad = coinjs.addressDecode(a);
+			if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.multisig || ad.type=="bech32")) && $(".amount",o).val()!=""){ // address
+				// P2SH output is 32, P2PKH is 34
+				estimatedTxSize += (ad.version == coinjs.pub ? 34 : 32)
+				tx.addoutput(a, $(".amount",o).val());
+			} else if (((a!="") && ad.version === 42) && $(".amount",o).val()!=""){ // stealth address
+				// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
+				estimatedTxSize += 78
+				tx.addstealth(ad, $(".amount",o).val());
+			} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
+				estimatedTxSize += (a.length / 2) + 1 + 8
+				tx.adddata(a);
+			} else { // neither address nor data
+				$(o).addClass('has-error');
+				$('#putTabs a[href="#txoutputs"]').attr('style','color:#a94442;');
+			}
 
 
 
