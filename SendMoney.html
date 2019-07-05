@@ -18,7 +18,7 @@
 	<!-- Ionicons -->
 	<link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
 
-	<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
+	<!--<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">-->
 	
 	<!-- Select2 -->
 	<link rel="stylesheet" href="bower_components/select2/dist/css/select2.min.css">	
@@ -175,8 +175,8 @@
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->
 <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="js/moment.min.js"></script>
-<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>
+<!--<script type="text/javascript" src="js/moment.min.js"></script>-->
+<!--<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>-->
 <script type="text/javascript" src="js/crypto-min.js"></script>
 <script type="text/javascript" src="js/crypto-sha256.js"></script>
 <script type="text/javascript" src="js/crypto-sha256-hmac.js"></script>
@@ -184,7 +184,7 @@
 <script type="text/javascript" src="js/ripemd160.js"></script>
 <script type="text/javascript" src="js/aes.js"></script>
 <script type="text/javascript" src="js/jsbn.js"></script>
-<script type="text/javascript" src="js/ellipticcurve.js"></script>
+<!--<script type="text/javascript" src="js/ellipticcurve.js"></script>-->
 
 <!-- SlimScroll -->
 <script src="bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
@@ -224,7 +224,8 @@
 	var currencyAddress = "";
 	var unspentTransaction = null;
 	var totalUnspent = 0.0;
-	var fee = 0.0;
+	var minFee = 0.0;	//1 input + 1 output 約 225 bytes
+	var feeBtcSatPerByte = 34;	//每byte給多少 Sat (聰)
 
 	function checkAppCardWalletAndCurrency(){
 		appId = getLocalValue("SCWSysAppId");
@@ -248,10 +249,10 @@
 
 	function getUnsentTransaction(){
 		var sUrl = "";
-		fee = 0.0;
 		if (currencyId == "BTCTEST")	sUrl = "https://chain.so/api/v2/get_tx_unspent/BTCTEST/" + currencyAddress;
 		if (currencyId == "BTC")		sUrl = "https://chain.so/api/v2/get_tx_unspent/BTC/" + currencyAddress;
-		if (currencyId == "BTCTEST" || currencyId == "BTC") fee = 0.00000168;
+		if (currencyId == "BTCTEST" || currencyId == "BTC") minFee = 0.00007425;	//1 input + 1 output
+		//if (currencyId == "BTCTEST" || currencyId == "BTC") minFee = 0.00012276;	//2 input + 2 output
 
 		$.getJSON( sUrl, function(data) {
 			totalUnspent = 0.0;
@@ -263,14 +264,13 @@
 			$.each( data.data.txs, function(i, r) {
 				totalUnspent += parseFloat(r.value);
 			});	//$.each( data.data.txs, function(i, r) {
-			if (totalUnspent<fee){
+			if (totalUnspent<minFee){
 				msgBox("No available money.");
 				return;
 			}
-			//totalUnspent = totalUnspent - fee;
 			totalUnspent = totalUnspent.toFixed(8);	//小數點後8位
-			$('#availableMoney').text(", available money = " + (totalUnspent-fee).toString());
-			$('#transactionFee').val(fee);
+			$('#availableMoney').text(", maximum available money = " + (totalUnspent-minFee).toString());
+			$('#transactionFee').val(minFee);
 		})
 		.fail(function(d) {
 			msgBox("Failed to get unspent money");
@@ -290,8 +290,8 @@
 			msgBox("Please input beneficiary address");
 			return false;
 		}
-		if (beEmpty($('#amountToBeSent').val()) || amountToBeSent>(totalUnspent-fee)){
-			msgBox("You are trying to send " + amountToBeSent.toString() + ", but have a balance of " + (totalUnspent-fee).toString());
+		if (beEmpty($('#amountToBeSent').val()) || amountToBeSent>(totalUnspent-minFee)){
+			msgBox("You are trying to send " + amountToBeSent.toString() + ", but have a balance of " + (totalUnspent-minFee).toString());
 			return false;
 		}
 		return true;
@@ -304,6 +304,7 @@
 		var hasError = false;
 		var addedMoney = 0.0;
 		var ad = null;
+		var totalFee = 0.00000000;
 		$.each(unspentTransaction.txs, function(i,o){
 			if(!(o.txid).match(/^[a-f0-9]+$/i)){
 				hasError = true;
@@ -312,61 +313,113 @@
 			} else if (!(o.output_no).toString().match(/^[0-9]+$/i)){
 				hasError = true;
 			}
-
+console.log("0 estimatedTxSize= " + estimatedTxSize.toString());
 			if(!hasError){
 				var seq = null;
 
 				var currentScript = o.script_hex;
 				if (currentScript.match(/^76a914[0-9a-f]{40}88ac$/)) {
-					estimatedTxSize += 147
+					estimatedTxSize += 147;
+console.log("1 estimatedTxSize= " + estimatedTxSize.toString());
 				} else if (currentScript.match(/^5[1-9a-f](?:210[23][0-9a-f]{64}){1,15}5[1-9a-f]ae$/)) {
 					// <74:persig <1:push><72:sig><1:sighash> ><34:perpubkey <1:push><33:pubkey> > <32:prevhash><4:index><4:nSequence><1:m><1:n><1:OP>
-					var scriptSigSize = (parseInt(currentScript.slice(1,2),16) * 74) + (parseInt(currentScript.slice(-3,-2),16) * 34) + 43
+					var scriptSigSize = (parseInt(currentScript.slice(1,2),16) * 74) + (parseInt(currentScript.slice(-3,-2),16) * 34) + 43;
 					// varint 2 bytes if scriptSig is > 252
-					estimatedTxSize += scriptSigSize + (scriptSigSize > 252 ? 2 : 1)
+					estimatedTxSize += scriptSigSize + (scriptSigSize > 252 ? 2 : 1);
+console.log("2 estimatedTxSize= " + estimatedTxSize.toString());
 				} else {
 					// underestimating won't hurt. Just showing a warning window anyways.
-					estimatedTxSize += 147
+					estimatedTxSize += 147;
+console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 				}
 				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
 				addedMoney += parseFloat(o.value);
-				if (addedMoney>=amountToBeSent+fee){
-					if (addedMoney>amountToBeSent+fee){
-						ad = coinjs.addressDecode(currencyAddress);
-						// P2SH output is 32, P2PKH is 34
-						estimatedTxSize += (ad.version == coinjs.pub ? 34 : 32)
-						tx.addoutput(currencyAddress, (addedMoney-amountToBeSent-fee).toString());
-					}
+				console.log(i.toString() + ", addedMoney=" + addedMoney);
+				totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
+				console.log(i.toString() + "totalFee=" + totalFee);
+				console.log("addedMoney=" + addedMoney.toString());
+				console.log("amountToBeSent=" + amountToBeSent.toString());
+				console.log("totalFee=" + totalFee.toString());
+				if (addedMoney==(amountToBeSent+totalFee)) alert("1");
+				if (addedMoney>(amountToBeSent+totalFee)) alert("2");
+				if (addedMoney<(amountToBeSent+totalFee)) alert("3");
+				if (addedMoney==(amountToBeSent+totalFee)){
+					console.log("false 0");
 					return false; // 等於break
+				}else if (addedMoney>(amountToBeSent+totalFee)){
+					
+					ad = coinjs.addressDecode(currencyAddress);
+					// P2SH output is 32, P2PKH is 34
+					estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
+					totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
+					console.log(i.toString() + " else totalFee=" + totalFee);
+					if (addedMoney==(amountToBeSent+totalFee)){
+						console.log("false 1");
+						return false; // 等於break
+					}else if (addedMoney>(amountToBeSent+totalFee)){
+						tx.addoutput(currencyAddress, (addedMoney-amountToBeSent-totalFee).toString());
+						console.log(i.toString() + ", estimatedTxSize=" + estimatedTxSize.toString()+", add out amount" +(addedMoney-amountToBeSent-totalFee).toString());
+						console.log("false 2");
+						return false; // 等於break
+					}
 				}
 			} else {
 				msgBox("Parsing error with the unspent data");
+				hasError = true;
+				return false;
 			}
 		});
 
-			var a = ($(".address",o).val());
+		if (!hasError){
+			var a = ($('#beneficiaryAddress').val());
 			var ad = coinjs.addressDecode(a);
-			if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.multisig || ad.type=="bech32")) && $(".amount",o).val()!=""){ // address
+			//console.log(ad);
+			if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
 				// P2SH output is 32, P2PKH is 34
-				estimatedTxSize += (ad.version == coinjs.pub ? 34 : 32)
-				tx.addoutput(a, $(".amount",o).val());
-			} else if (((a!="") && ad.version === 42) && $(".amount",o).val()!=""){ // stealth address
+				estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
+console.log("5 estimatedTxSize= " + estimatedTxSize.toString());
+				tx.addoutput(a, $('#amountToBeSent').val());
+			} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
 				// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
 				estimatedTxSize += 78
-				tx.addstealth(ad, $(".amount",o).val());
+				tx.addstealth(ad, $('#amountToBeSent').val());
+console.log("6 estimatedTxSize= " + estimatedTxSize.toString());
 			} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
 				estimatedTxSize += (a.length / 2) + 1 + 8
 				tx.adddata(a);
+console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 			} else { // neither address nor data
-				$(o).addClass('has-error');
-				$('#putTabs a[href="#txoutputs"]').attr('style','color:#a94442;');
+				hasError = true;
+				msgBox("The address you entered is invalid");
+				return;
 			}
+		}
 
-
-
-
-
+		if (!hasError){
+			totalFee = estimatedTxSize*feeBtcSatPerByte/100000000;
+			console.log("total estimatedTxSize= " + estimatedTxSize.toString() + ", totalFee=" + totalFee.toString());
+			console.log(tx.serialize());
+		}
 
 	}	//function generateRawTransactionData(){
+	
+	function getBeneficiaryOutputDataSize(){
+		var estimatedTxSize = 0;
+		var a = ($('#beneficiaryAddress').val());
+		var ad = coinjs.addressDecode(a);
+		//console.log(ad);
+		if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
+			// P2SH output is 32, P2PKH is 34
+			estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
+		} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
+			// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
+			estimatedTxSize += 78
+		} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
+			estimatedTxSize += (a.length / 2) + 1 + 8
+		} else { // neither address nor data
+			msgBox("The address you entered is invalid");
+		}
+		return estimatedTxSize;
+	}
 </script>
 

@@ -74,7 +74,7 @@ if (beEmpty(sPublicKey)){
 
 String	sResponse	=	"";
 
-String unsignedHash = "0100000002ddff6a05030bf2a8fa0d8e2a1043d05306fd200caeb622838d2a4ce911604e01000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88acffffffff550aad15cbdfe4f006c89e6b02be87492074b8bdd57340f3b7d390b1d355eab3000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88acffffffff02289a0100000000001976a91410ea1b4418c365cc947c63c7d876bed8c1ee557c88aca00f0000000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88ac00000000";
+String unsignedHash = "01000000013ff7fb5b40a6080d3ab36f144be36597f997edbebf11b3307afe4e8f718408ab000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88acffffffff025e7e0000000000001976a91428a53ed45a5972b5e2cd0d7dc4f7e6d83fe4f42e88ac10270000000000001976a914d0984fefea3031215ec614521cb35f2c279a3dc788ac00000000";
 String sAddress = "mjDsHBSbwouL1H8fzp7onN2BcC1rWLobGZ";
 sPublicKey = "03B4CFEEB44B6D0A2E8FAB410FD70FA1646DA7BE47C6B559349EA7513143BF7D54";
 
@@ -82,6 +82,9 @@ NetworkParameters params = NetworkParameters.fromID(NetworkParameters.ID_TESTNET
 Address myAddress = Address.fromString(params, sAddress);
 
 Transaction tx = new Transaction(params, hex2Byte(unsignedHash));
+	//out.println("<p>fee= " + tx.getFee().toString() + ", min=" + Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.toString());
+	out.println("<p>getOutputSum=" + tx.getOutputSum().toString());
+	out.println("<p>getInputSum=" + tx.getInputSum().toString());
 
 for (int i = 0; i < tx.getInputs().size(); i++) {
 	TransactionInput transactionInput = tx.getInput(i);
@@ -95,9 +98,13 @@ for (int i = 0; i < tx.getInputs().size(); i++) {
 	//TransactionSignature txSig = new TransactionSignature(ecSig, Transaction.SigHash.ALL, true);
 	TransactionSignature txSig = null;
 	if (i==0)
-		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("30440220355554E3F32E7377B165F3A2BB55F3E1127B4848993D40041343F762B268E21302202E0EAC1A543DE15C28F09A96E7DA013697E8ED68984AD9B4044D2D0E81A209B4")), Transaction.SigHash.ALL, true);
+		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("30450221008439C185FC759502B72D7AD8FEB670D831E68509EE40747F885D34B16CED555002204BE73CD8B008DA06200BF0B476DB52DB2067410A607E2046DC22A5C0F19E23AE")), Transaction.SigHash.ALL, true);
+	else if(i==1)
+		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("3046022100BDE43CADBA4399EF47DDD427827FDB40FF3D24F1834DD2F37AFAE7054B004934022100F2EDF15396DBBE10D56E26F59DE338915A4434E67EF5FDCA82C4901A93677771")), Transaction.SigHash.ALL, true);
+	else if(i==2)
+		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("3046022100F27110C68BF132B03F64294427B3ED1D51EFEA41EB1FCCC9D522C36A2D7E87CD022100E5A12A9506CCEF60DAE81B7C2E2944436F895F4865EDBDAA94FD09AA06DCCA56")), Transaction.SigHash.ALL, true);
 	else
-		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("304402200C2AD589C02A050014BB139A37B34B00215A6251DF2B415A56F2FE2B4F6D9B1002206247BDB156105CDC629008F18A5D120F813244845F99C1DED9569C027D5E1124")), Transaction.SigHash.ALL, true);
+		txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte("3044022060D7E7ACB2082B6768A0D2BD669E64180FE876529ACE64ED55C80F4780BDBF1702204D0CFA9DA07CDBC79D5C3A57765677DA6F13FD23D9984E1300C57C8E7634D217")), Transaction.SigHash.ALL, true);
 	if (scriptPubKey.isSentToRawPubKey()) {
 		//transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig));
 		//transactionInput.setScriptSig(Script.createInputScript(hex2Byte("3045022100B04EA8A8E84364455DADEA51A5064FC7F33D8B559F45C04F06F179C9D0C9B38C02206BE340B3B593BCE4CC6C0F6584F44FD9EDFEEA862421E9B9B16E1694C6170222")));
