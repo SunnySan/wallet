@@ -18,12 +18,15 @@
 	<!-- Ionicons -->
 	<link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
 
+	<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
+	
 	<!-- Select2 -->
 	<link rel="stylesheet" href="bower_components/select2/dist/css/select2.min.css">	
 	<!-- daterange picker -->
 	<link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css">
 
 	<link rel="stylesheet" href="css/jquery-ui.min.css" type="text/css" /><!-- Jquery UI -->
+	
 
 	<!-- Theme style -->
 	<link rel="stylesheet" href="dist/css/AdminLTE.min.css">
@@ -164,6 +167,7 @@
 </div>
 <!-- ./wrapper -->
 
+<div class="hidden" id="entropybucket"></div>
 </body>
 </html>
 
@@ -171,6 +175,17 @@
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->
 <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/moment.min.js"></script>
+<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript" src="js/crypto-min.js"></script>
+<script type="text/javascript" src="js/crypto-sha256.js"></script>
+<script type="text/javascript" src="js/crypto-sha256-hmac.js"></script>
+<script type="text/javascript" src="js/sha512.js"></script>
+<script type="text/javascript" src="js/ripemd160.js"></script>
+<script type="text/javascript" src="js/aes.js"></script>
+<script type="text/javascript" src="js/jsbn.js"></script>
+<script type="text/javascript" src="js/ellipticcurve.js"></script>
+
 <!-- SlimScroll -->
 <script src="bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
@@ -184,6 +199,9 @@
 <script type="text/javascript" src="js/jquery.cookie.js"></script><!--處理cookie，參考網頁：https://github.com/carhartl/jquery-cookie -->
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/menu.js"></script>
+
+<script type="text/javascript" src="js/coin.js"></script>
+<!--<script type="text/javascript" src="js/coinbin.js"></script>-->
 
 <!-- Select2 -->
 <script src="bower_components/select2/dist/js/select2.full.min.js"></script>
@@ -206,6 +224,7 @@
 	var currencyAddress = "";
 	var unspentTransaction = null;
 	var totalUnspent = 0.0;
+	var fee = 0.0;
 
 	function checkAppCardWalletAndCurrency(){
 		appId = getLocalValue("SCWSysAppId");
@@ -229,7 +248,7 @@
 
 	function getUnsentTransaction(){
 		var sUrl = "";
-		var fee = 0.0;
+		fee = 0.0;
 		if (currencyId == "BTCTEST")	sUrl = "https://chain.so/api/v2/get_tx_unspent/BTCTEST/" + currencyAddress;
 		if (currencyId == "BTC")		sUrl = "https://chain.so/api/v2/get_tx_unspent/BTC/" + currencyAddress;
 		if (currencyId == "BTCTEST" || currencyId == "BTC") fee = 0.00000168;
@@ -248,9 +267,9 @@
 				msgBox("No available money.");
 				return;
 			}
-			totalUnspent = totalUnspent - fee;
+			//totalUnspent = totalUnspent - fee;
 			totalUnspent = totalUnspent.toFixed(8);	//小數點後8位
-			$('#availableMoney').text(", available money = " + totalUnspent.toString());
+			$('#availableMoney').text(", available money = " + (totalUnspent-fee).toString());
 			$('#transactionFee').val(fee);
 		})
 		.fail(function(d) {
@@ -262,6 +281,7 @@
 	
 	function doSend(){
 		if (!checkUnspentMoney()) return;
+		generateRawTransactionData();
 	}	//function doSend(){
 	
 	function checkUnspentMoney(){
@@ -270,12 +290,67 @@
 			msgBox("Please input beneficiary address");
 			return false;
 		}
-		if (beEmpty($('#amountToBeSent').val()) || amountToBeSent>totalUnspent){
-			msgBox("Please input an amount less than " + totalUnspent.toString());
+		if (beEmpty($('#amountToBeSent').val()) || amountToBeSent>(totalUnspent-fee)){
+			msgBox("You are trying to send " + amountToBeSent.toString() + ", but have a balance of " + (totalUnspent-fee).toString());
 			return false;
 		}
-
+		return true;
 	}	//function checkUnspentMoney(){
 	
+	function generateRawTransactionData(){
+		var amountToBeSent = parseFloat($('#amountToBeSent').val());
+		var tx = coinjs.transaction();
+		var estimatedTxSize = 10; // <4:version><1:txInCount><1:txOutCount><4:nLockTime>
+		var hasError = false;
+		var addedMoney = 0.0;
+		var ad = null;
+		$.each(unspentTransaction.txs, function(i,o){
+			if(!(o.txid).match(/^[a-f0-9]+$/i)){
+				hasError = true;
+			} else if((!(o.script_hex).match(/^[a-f0-9]+$/i)) && $(".txIdScript",o).val()!=""){
+				hasError = true;
+			} else if (!(o.output_no).toString().match(/^[0-9]+$/i)){
+				hasError = true;
+			}
+
+			if(!hasError){
+				var seq = null;
+
+				var currentScript = o.script_hex;
+				if (currentScript.match(/^76a914[0-9a-f]{40}88ac$/)) {
+					estimatedTxSize += 147
+				} else if (currentScript.match(/^5[1-9a-f](?:210[23][0-9a-f]{64}){1,15}5[1-9a-f]ae$/)) {
+					// <74:persig <1:push><72:sig><1:sighash> ><34:perpubkey <1:push><33:pubkey> > <32:prevhash><4:index><4:nSequence><1:m><1:n><1:OP>
+					var scriptSigSize = (parseInt(currentScript.slice(1,2),16) * 74) + (parseInt(currentScript.slice(-3,-2),16) * 34) + 43
+					// varint 2 bytes if scriptSig is > 252
+					estimatedTxSize += scriptSigSize + (scriptSigSize > 252 ? 2 : 1)
+				} else {
+					// underestimating won't hurt. Just showing a warning window anyways.
+					estimatedTxSize += 147
+				}
+				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
+				addedMoney += parseFloat(o.value);
+				if (addedMoney>=amountToBeSent+fee){
+					if (addedMoney>amountToBeSent+fee){
+						ad = coinjs.addressDecode(currencyAddress);
+						// P2SH output is 32, P2PKH is 34
+						estimatedTxSize += (ad.version == coinjs.pub ? 34 : 32)
+						tx.addoutput(currencyAddress, (addedMoney-amountToBeSent-fee).toString());
+					}
+					return false; // 等於break
+				}
+			} else {
+				msgBox("Parsing error with the unspent data");
+			}
+		});
+
+
+
+
+
+
+
+
+	}	//function generateRawTransactionData(){
 </script>
 
