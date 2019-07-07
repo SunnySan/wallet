@@ -113,7 +113,7 @@
 				<h4><i class="icon fa fa-info"></i> Information</h4>
 				<ul>
 					<li>Please enter the destination address and amount, then click Send button</li>
-					<li>If the transaction is not accepted by the blockchain, please adjust the transaction fee and try again</li>
+					<li>If the transaction is not accepted by the blockchain, you could select a higher transaction fee and try again</li>
 				</ul>
 			</div><!-- info window -->
 
@@ -151,7 +151,7 @@
 								</div>
 								<!-- text input -->
 								<div class="form-group">
-									<label>Fee per byte (satoshi/B)</label>
+									<label>Fee per byte (sat/B)</label>
 									<input type="text" id="transactionFee" class="form-control" placeholder="" disabled>
 								</div>
 								<div class="slider"></div>
@@ -219,11 +219,13 @@
 							</form>
 
 
-							<div class="col-lg-12 col-xs-12"  style="display:none;">
+							<!--
+							<div class="col-lg-12 col-xs-12">
 								<button type="button" id="broadcastBtn" class="btn btn-block btn-danger btn-lg" onclick="doBroadcast();">Send to blockchain</button>
 							</div>
-							<div  style="display:none;">Transaction hash(ID)</div>
-							<div id="transactionHash"  style="display:none;"></div>
+							<div>Transaction hash(ID)</div>
+							<div id="transactionHash"></div>
+							-->
 						</div><!-- /.box-footer -->
 					</div><!-- /.box -->
 				</div><!-- /.col -->
@@ -315,7 +317,7 @@
 	var unspentTransaction = null;
 	var totalUnspent = 0.0;
 	var minFee = 0.0;	//1 input + 1 output 約 225 bytes
-	var feeBtcSatPerByte = 10;	//每byte給多少 Sat (聰)
+	var feeBtcSatPerByte = 34;	//每byte給多少 Sat (聰)
 	var txHash = "";	//Transaction hex
 	var hasCamera = false;
 	var myCameras = null;
@@ -324,7 +326,7 @@
 		$('.slider').slider({
 			max: 80,
 			min: 0,
-			step: 5,
+			step: 1,
 			value: feeBtcSatPerByte,
 			slide: function( event, ui ) {$('#transactionFee').val((ui.value).toString())},
 			change: function( event, ui ) {$('#transactionFee').val((ui.value).toString())}
@@ -447,22 +449,13 @@
 		var tx = coinjs.transaction();
 		var estimatedTxSize = 10; // <4:version><1:txInCount><1:txOutCount><4:nLockTime>
 		var hasError = false;
-		var addedMoney = 0.00000000;
+		var addedMoney = 0.0;
 		var ad = null;
 		var totalFee = 0.00000000;
-		var totalOutput = 0.00000000;
-		var autoCalculateFee = false;
 
-		if (beEmpty($('#transactionFee').val()) || $('#transactionFee').val()=="0") autoCalculateFee = true;
-		else feeBtcSatPerByte = $('#transactionFee').val();
+		feeBtcSatPerByte = $('#transactionFee').val();
 
 		$.each(unspentTransaction.txs, function(i,o){
-			if (autoCalculateFee){
-				feeBtcSatPerByte = (i+1)*5;
-				$('#transactionFee').val(feeBtcSatPerByte.toString());
-				$( '.slider' ).slider( "value", feeBtcSatPerByte );
-			}
-			
 			if(!(o.txid).match(/^[a-f0-9]+$/i)){
 				hasError = true;
 			} else if((!(o.script_hex).match(/^[a-f0-9]+$/i)) && $(".txIdScript",o).val()!=""){
@@ -493,9 +486,6 @@ console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 				addedMoney += parseFloat(o.value);
 				console.log(i.toString() + ", o.txid= " + o.txid + ", addedMoney=" + addedMoney);
 				totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
-				//如果你的輸出(outputs)小於0.01BTC(包括你錢包內部的資金變動)的話，你必須要支付0.0001的手續費，即使是你自己轉給你自己。
-				//參考 https://kknews.cc/finance/y65myrn.html
-				if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
 				console.log(i.toString() + "totalFee=" + totalFee);
 				console.log("addedMoney=" + addedMoney.toString());
 				console.log("amountToBeSent=" + amountToBeSent.toString());
@@ -514,14 +504,12 @@ console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 					// P2SH output is 32, P2PKH is 34
 					estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
 					totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
-					if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
 					console.log(i.toString() + " else totalFee=" + totalFee);
 					if (addedMoney==(amountToBeSent+totalFee)){
 						console.log("false 1");
 						return false; // 等於break
 					}else if (addedMoney>(amountToBeSent+totalFee)){
 						tx.addoutput(currencyAddress, (addedMoney-amountToBeSent-totalFee).toString());
-						totalOutput += addedMoney-amountToBeSent-totalFee;
 						console.log(i.toString() + ", estimatedTxSize=" + estimatedTxSize.toString()+", add out amount" +(addedMoney-amountToBeSent-totalFee).toString());
 						console.log("false 2");
 						return false; // 等於break
@@ -542,8 +530,7 @@ console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 				// P2SH output is 32, P2PKH is 34
 				estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
 console.log("5 estimatedTxSize= " + estimatedTxSize.toString());
-				tx.addoutput(a, parseFloat($('#amountToBeSent').val()));
-				totalOutput += parseFloat($('#amountToBeSent').val());
+				tx.addoutput(a, $('#amountToBeSent').val());
 			} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
 				// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
 				estimatedTxSize += 78
@@ -561,7 +548,7 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 		}
 
 		if (!hasError){
-			totalFee = (addedMoney - totalOutput).toFixed(8);
+			totalFee = estimatedTxSize*feeBtcSatPerByte/100000000;
 			console.log("total estimatedTxSize= " + estimatedTxSize.toString() + ", totalFee=" + totalFee.toString());
 			console.log(tx.serialize());
 			getHashToBeSigned(tx.serialize());
@@ -643,10 +630,9 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 				return;
 			}else{
 				if (data.resultCode=="00000"){
-					$('#signedTransactionHex').html(data.txHex);
-					doBroadcast();
-					//$('#tx_hex').val(data.txHex);
-					//$('#frmBroadcast').submit();
+					//$('#signedTransactionHex').html(data.txHex);
+					$('#tx_hex').val(data.txHex);
+					$('#frmBroadcast').submit();
 				}else{
 					msgBox("Failed to get signed transaction hex:<br>" + data.resultText);
 				}
@@ -660,30 +646,42 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 		var s = "";
 		var tmp = "";
 		
-		sData = "cointype=" + currencyId;
-		sData += "&txhex=" + $('#signedTransactionHex').html();
+		s = "tx_hex=" + $('#signedTransactionHex').html();
 
-		//alert("go");
-		getDataFromServer("aBroadcastTransactionBTC.jsp", sData, "json", function(data){
-			if (!data.resultCode || !data.resultText){
-				msgBox("Unable to get signed transaction hex.");
+		sData += s;
+		sData = "http://chain.so/api/v2/send_tx/BTCTEST/?" + sData
+		$.getJSON( sData, function(data) {
+			if (!data.status ){
+				msgBox("Unable to get result.");
 				return;
 			}else{
-				if (data.resultCode=="00000"){
+				if (data.status=="success"){
 					$('#transactionHash').html(data.txid);
-					var msg = "Broadcast transaction to blockchain successfully.";
-					if (notEmpty(data.txid)){
-						msg += " Please visit <a href='https://www.blockchain.com/" + currencyId.toLowerCase() + "/tx/" + data.txid + "' target='_blank'>Blockchain web</a> for detailed information.";
-					}
-					msgBox(msg);
-				}else if (data.resultText.contains("FileNotFoundException")){
-					msgBox("Failed to broadcast transaction to blockchain, might be caused by inappropriate transaction fee, please adjust the transaction fee then try again.");
 				}else{
-					msgBox("Failed to broadcast transaction to blockchain:<br>" + data.resultText);
+					msgBox("Failed to send to blockchain:<br>Network=" + data.network + "<br>txid=" + data.txid);
 				}
 			}
-		}, true, "POST");	//getDataFromServer("xxx.jsp", sData, "json", function(data){
-		
+		})
+		.fail(function(d) {
+			msgBox("Failed to result");
+		});	//$.getJSON( "./point.json", function(data) { 
+
+
+/*
+		getDataFromServer("http://chain.so/api/v2/send_tx/BTCTEST", sData, "json", function(data){
+			if (!data.status ){
+				msgBox("Unable to get result.");
+				return;
+			}else{
+				if (data.status=="success"){
+					$('#transactionHash').html(data.txid);
+				}else{
+					msgBox("Failed to send to blockchain:<br>Network=" + data.network + "<br>txid=" + data.txid);
+				}
+			}
+
+		}, true, "GET");	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+*/
 
 	}
 </script>
