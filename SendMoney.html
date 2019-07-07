@@ -610,7 +610,7 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 				if (data.resultCode=="00000"){
 					s = "";
 					$.each( data.records, function(i, r) {
-						s += "<p>" + r.hash;
+						s += "<p>" + r.hash.toUpperCase();
 					});	//$.each( data.orders, function(i, r) {
 					$('#hashForSigning').html(s);
 				}else{
