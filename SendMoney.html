@@ -17,7 +17,7 @@
 	<link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
 	<!-- Ionicons -->
 	<link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
-
+  
 	<!--<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">-->
 	
 	<!-- Select2 -->
@@ -113,6 +113,7 @@
 				<h4><i class="icon fa fa-info"></i> Information</h4>
 				<ul>
 					<li>Please enter the destination address and amount, then click Send button</li>
+					<li>If the transaction is not accepted by the blockchain, you could select a higher transaction fee and try again</li>
 				</ul>
 			</div><!-- info window -->
 
@@ -127,11 +128,22 @@
 						</div><!-- /.box-header -->
 						<div class="box-body">
 							<form role="form">
+
+								<div class="input-group">
+									<div class="input-group-btn">
+										<button type="button" class="btn btn-info" data-toggle='modal' data-target='#qrcodeScanner' onclick="startCamera();"><i class="fa fa-qrcode"></i></button>
+									</div>
+									<!-- /btn-group -->
+									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address" value="mzXuJo757JoxpiGqdwGiBu9BMWbto1PaAx">
+								</div>
+
 								<!-- text input -->
+								<!--
 								<div class="form-group">
 									<label>Address</label>
-									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address">
+									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address" value="mzXuJo757JoxpiGqdwGiBu9BMWbto1PaAx">
 								</div>
+								-->
 								<!-- text input -->
 								<div class="form-group">
 									<label>Amount</label>
@@ -139,20 +151,104 @@
 								</div>
 								<!-- text input -->
 								<div class="form-group">
-									<label>Fee</label>
+									<label>Fee per byte (sat/B)</label>
 									<input type="text" id="transactionFee" class="form-control" placeholder="" disabled>
 								</div>
+								<div class="slider"></div>
 							</form>
 						</div><!-- /.box-body -->
 						<div class="box-footer clearfix">
 							<div class="col-lg-12 col-xs-12">
 								<button type="button" id="transactionBtn" class="btn btn-block btn-danger btn-lg" onclick="doSend();">Send</button>
 							</div>
+							<div>Hash(s) to be signed</div>
+							<div id="hashForSigning"></div>
 						</div><!-- /.box-footer -->
 					</div><!-- /.box -->
 				</div><!-- /.col -->
+
+
+
+
+
+				<div class="col-lg-6 col-xs-12">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title">Signature(s)</h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+							<form role="form">
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 1</label>
+									<input type="text" id="sig1" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 2</label>
+									<input type="text" id="sig2" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 3</label>
+									<input type="text" id="sig3" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 4</label>
+									<input type="text" id="sig4" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 5</label>
+									<input type="text" id="sig5" class="form-control" placeholder="" value="">
+								</div>
+							</form>
+						</div><!-- /.box-body -->
+						<div class="box-footer clearfix">
+							<div class="col-lg-12 col-xs-12">
+								<button type="button" id="transactionBtn" class="btn btn-block btn-danger btn-lg" onclick="doGetSignedData();">Sign transaction and send to blockchain</button>
+							</div>
+							<div style="display:none;">Signed transaction hex</div>
+							<div id="signedTransactionHex"></div>
+
+
+							<form id="frmBroadcast" action="https://chain.so/api/v2/send_tx/BTCTEST" method="POST" target="_blank">
+								<input type="hidden" id="tx_hex" name="tx_hex">
+								<input type="submit" value="Submit" style="display:none;">
+							</form>
+
+
+							<!--
+							<div class="col-lg-12 col-xs-12">
+								<button type="button" id="broadcastBtn" class="btn btn-block btn-danger btn-lg" onclick="doBroadcast();">Send to blockchain</button>
+							</div>
+							<div>Transaction hash(ID)</div>
+							<div id="transactionHash"></div>
+							-->
+						</div><!-- /.box-footer -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+
+
+
+
+
 			</div><!-- row -->
 
+			<!-- Modal for QRCode scanner -->
+			<div class="modal modal-info fade" id="qrcodeScanner">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-body">
+							<video id="preview" style="width:100%;"></video>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline pull-left" data-dismiss="modal" onclick="if (typeof(scanner)=='object'){scanner.stop();}">Cancel</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
 
 		</section><!-- /.content -->
 	</div><!-- /.content-wrapper -->
@@ -206,11 +302,7 @@
 <!-- Select2 -->
 <script src="bower_components/select2/dist/js/select2.full.min.js"></script>
 
-<script>
-	$(document).ready(function () {
-		checkAppCardWalletAndCurrency();
-	})
-</script>
+<script src="js/instascan.min.js"></script>
 
 <script>
 	var appId = "";
@@ -226,6 +318,61 @@
 	var totalUnspent = 0.0;
 	var minFee = 0.0;	//1 input + 1 output 約 225 bytes
 	var feeBtcSatPerByte = 34;	//每byte給多少 Sat (聰)
+	var txHash = "";	//Transaction hex
+	var hasCamera = false;
+	var myCameras = null;
+	
+	$(document).ready(function () {
+		$('.slider').slider({
+			max: 80,
+			min: 0,
+			step: 1,
+			value: feeBtcSatPerByte,
+			slide: function( event, ui ) {$('#transactionFee').val((ui.value).toString())},
+			change: function( event, ui ) {$('#transactionFee').val((ui.value).toString())}
+		});
+		$('#transactionFee').val(feeBtcSatPerByte.toString());
+		checkAppCardWalletAndCurrency();
+	})
+
+	let scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
+	scanner.addListener('scan', function (content) {
+		if (content.startsWith("bitcoin:")) {
+			content = content.replace("bitcoin:","");
+		}
+		$('#beneficiaryAddress').val(content);
+		scanner.stop();
+		$('#qrcodeScanner').modal('hide');
+	});
+	Instascan.Camera.getCameras().then(function (cameras) {
+		if (cameras.length > 0) {
+			myCameras = cameras;
+			hasCamera = true;
+			//scanner.start(cameras[0]);
+		} else {
+			console.error('No cameras found.');
+		}
+	}).catch(function (e) {
+		console.error(e);
+	});
+
+	function startCamera(){
+		if (hasCamera) {
+		var selectedCam = myCameras[0];
+		$.each(myCameras, (i, c) => {
+			if (c.name.indexOf('back') != -1) {
+				selectedCam = c;
+				return false;
+			}
+		});
+		
+		scanner.start(selectedCam);
+
+			//scanner.start(myCameras[0]);
+		} else {
+			msgBox('No cameras found.');
+		}
+	}
 
 	function checkAppCardWalletAndCurrency(){
 		appId = getLocalValue("SCWSysAppId");
@@ -243,11 +390,11 @@
 		}else{
 			$('.currencyName').text(currencyName);
 			//$('.currencyAddress').text(currencyAddress);
-			getUnsentTransaction();
+			getUnspentTransaction();
 		}
 	}
 
-	function getUnsentTransaction(){
+	function getUnspentTransaction(){
 		var sUrl = "";
 		if (currencyId == "BTCTEST")	sUrl = "https://chain.so/api/v2/get_tx_unspent/BTCTEST/" + currencyAddress;
 		if (currencyId == "BTC")		sUrl = "https://chain.so/api/v2/get_tx_unspent/BTC/" + currencyAddress;
@@ -269,15 +416,15 @@
 				return;
 			}
 			totalUnspent = totalUnspent.toFixed(8);	//小數點後8位
-			$('#availableMoney').text(", maximum available money = " + (totalUnspent-minFee).toString());
-			$('#transactionFee').val(minFee);
+			$('#availableMoney').text(", maximum available money = " + (totalUnspent-minFee).toFixed(8));
+			//$('#transactionFee').val(minFee);
 		})
 		.fail(function(d) {
 			msgBox("Failed to get unspent money");
 			$('#availableMoney').text("Failed to get unspent money");
 		});	//$.getJSON( "./point.json", function(data) { 
 
-	}	//function getUnsentTransaction(){
+	}	//function getUnspentTransaction(){
 	
 	function doSend(){
 		if (!checkUnspentMoney()) return;
@@ -305,6 +452,9 @@
 		var addedMoney = 0.0;
 		var ad = null;
 		var totalFee = 0.00000000;
+
+		feeBtcSatPerByte = $('#transactionFee').val();
+
 		$.each(unspentTransaction.txs, function(i,o){
 			if(!(o.txid).match(/^[a-f0-9]+$/i)){
 				hasError = true;
@@ -334,15 +484,17 @@ console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 				}
 				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
 				addedMoney += parseFloat(o.value);
-				console.log(i.toString() + ", addedMoney=" + addedMoney);
+				console.log(i.toString() + ", o.txid= " + o.txid + ", addedMoney=" + addedMoney);
 				totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
 				console.log(i.toString() + "totalFee=" + totalFee);
 				console.log("addedMoney=" + addedMoney.toString());
 				console.log("amountToBeSent=" + amountToBeSent.toString());
 				console.log("totalFee=" + totalFee.toString());
+				/*
 				if (addedMoney==(amountToBeSent+totalFee)) alert("1");
 				if (addedMoney>(amountToBeSent+totalFee)) alert("2");
 				if (addedMoney<(amountToBeSent+totalFee)) alert("3");
+				*/
 				if (addedMoney==(amountToBeSent+totalFee)){
 					console.log("false 0");
 					return false; // 等於break
@@ -399,6 +551,7 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 			totalFee = estimatedTxSize*feeBtcSatPerByte/100000000;
 			console.log("total estimatedTxSize= " + estimatedTxSize.toString() + ", totalFee=" + totalFee.toString());
 			console.log(tx.serialize());
+			getHashToBeSigned(tx.serialize());
 		}
 
 	}	//function generateRawTransactionData(){
@@ -420,6 +573,116 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 			msgBox("The address you entered is invalid");
 		}
 		return estimatedTxSize;
+	}
+	
+	function getHashToBeSigned(unsignedHsh){
+		var sData = "";
+		var s = "";
+		var tmp = "";
+
+		txHash = unsignedHsh;
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		var walletId = getLocalValue("SCWSysWalletId");
+		sData = "txHash=" + txHash;
+		sData += "&address=" + currencyAddress;
+		sData += "&publicKey=" + currencyPublicKey;
+		sData += "&currencyId=" + currencyId;
+
+		getDataFromServer("testGetHashToBeSigned.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get hash data for signing.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					s = "";
+					$.each( data.records, function(i, r) {
+						s += "<p>" + r.hash;
+					});	//$.each( data.orders, function(i, r) {
+					$('#hashForSigning').html(s);
+				}else{
+					msgBox("Failed to get hash data for signing:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
+	
+	function doGetSignedData(){
+		var sData = "";
+		var s = "";
+		var tmp = "";
+		
+		s = "&sig=" + $('#sig1').val() + "," + $('#sig2').val() + "," + $('#sig3').val() + "," + $('#sig4').val() + "," + $('#sig5').val();
+
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		var walletId = getLocalValue("SCWSysWalletId");
+		sData = "txHash=" + txHash;
+		sData += "&address=" + currencyAddress;
+		sData += "&publicKey=" + currencyPublicKey;
+		sData += "&currencyId=" + currencyId;
+		sData += s;
+
+		getDataFromServer("testGetSignedTransactionHex.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get signed transaction hex.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					//$('#signedTransactionHex').html(data.txHex);
+					$('#tx_hex').val(data.txHex);
+					$('#frmBroadcast').submit();
+				}else{
+					msgBox("Failed to get signed transaction hex:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
+
+	function doBroadcast(){
+		var sData = "";
+		var s = "";
+		var tmp = "";
+		
+		s = "tx_hex=" + $('#signedTransactionHex').html();
+
+		sData += s;
+		sData = "http://chain.so/api/v2/send_tx/BTCTEST/?" + sData
+		$.getJSON( sData, function(data) {
+			if (!data.status ){
+				msgBox("Unable to get result.");
+				return;
+			}else{
+				if (data.status=="success"){
+					$('#transactionHash').html(data.txid);
+				}else{
+					msgBox("Failed to send to blockchain:<br>Network=" + data.network + "<br>txid=" + data.txid);
+				}
+			}
+		})
+		.fail(function(d) {
+			msgBox("Failed to result");
+		});	//$.getJSON( "./point.json", function(data) { 
+
+
+/*
+		getDataFromServer("http://chain.so/api/v2/send_tx/BTCTEST", sData, "json", function(data){
+			if (!data.status ){
+				msgBox("Unable to get result.");
+				return;
+			}else{
+				if (data.status=="success"){
+					$('#transactionHash').html(data.txid);
+				}else{
+					msgBox("Failed to send to blockchain:<br>Network=" + data.network + "<br>txid=" + data.txid);
+				}
+			}
+
+		}, true, "GET");	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+*/
+
 	}
 </script>
 
