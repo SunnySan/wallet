@@ -676,6 +676,7 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 						msg += " Please visit <a href='https://www.blockchain.com/" + currencyId.toLowerCase() + "/tx/" + data.txid + "' target='_blank'>Blockchain web</a> for detailed information.";
 					}
 					msgBox(msg);
+					getUnspentTransaction();
 				}else if (data.resultText.contains("FileNotFoundException")){
 					msgBox("Failed to broadcast transaction to blockchain, might be caused by inappropriate transaction fee, please adjust the transaction fee then try again.");
 				}else{

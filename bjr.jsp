@@ -174,7 +174,7 @@ if (s[0][1].equals("D")){	//Delete wallet
 	sSQLList.add(sSQL);
 }
 
-if (s[0][1].equals("A")){	//Add currency
+if (s[0][1].equals("A")){	//Add currency (Get child key)
 	if (beEmpty(publicKey)){
 		writeLog("debug", "BIP card response parameter not found for Card_Id= " + cardId + ", Job_Id=" + jobId + ", Result_Code=" + resultCode);
 		sResponse = "DDDDDD";
@@ -205,7 +205,7 @@ if (s[0][1].equals("A")){	//Add currency
 	sSQL += "'" + sUser + "',";
 	sSQL += "'" + sDate + "',";
 	sSQL += "'" + cardId + "',";
-	sSQL += "'" + walletId + "',";
+	sSQL += "'" + s[0][4] + "',";
 	sSQL += "'" + s[0][6] + "',";
 	sSQL += "'" + publicKey + "',";
 	sSQL += "'" + myBitcoinAddressBase58 + "',";

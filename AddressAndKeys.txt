@@ -8,6 +8,11 @@ https://testnet.blockchain.info/unspent?active=mjDsHBSbwouL1H8fzp7onN2BcC1rWLobG
 測試APK預設錢包Address: mjDsHBSbwouL1H8fzp7onN2BcC1rWLobGZ
 測試APK預設錢包public key: 03B4CFEEB44B6D0A2E8FAB410FD70FA1646DA7BE47C6B559349EA7513143BF7D54
 
+卡片第二個wallet
+助記詞: fresh unaware square visual adjust waste unveil marine payment conduct sign trip
+BTCTEST address: miswzKhFnbw1eznDYzhHM1sprhmbZY9MW6
+BTCTEST key: 03F450D406765E9EC19E12C131E528734A3A5CD17AA8E9E0937E917E2A4AEFFE52
+
 網頁根據手機預設助記詞產生的私鑰: cQUakMLSuC14gGQrrFcdkWQHWNTpt1U1DdQNXXf8KWuWi8fdDYV6
 網頁根據手機預設助記詞產生的公鑰: 0344e04fe9b5a8298474c0e392b5b9cc64cf7adbeeb03a1ab63b9bb9ed26b30962
 網頁根據手機預設助記詞產生的地址: mh4PZ8QycSA3xyxh7PynfB9L7siBcrZvjJ
