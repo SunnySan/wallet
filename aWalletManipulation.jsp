@@ -51,7 +51,7 @@ if (beEmpty(appId) || appId.length()!=16 || beEmpty(cardId) || cardId.length()!=
 	return;
 }
 
-if (((action.equals("D")||action.equals("A")) && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName))) || (action.equals("A") && beEmpty(currencyId))){
+if ((action.equals("C") && beEmpty(walletName)) || ((action.equals("D")||action.equals("A")) && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName))) || (action.equals("A") && beEmpty(currencyId))){
 	writeLog("debug", "Return: " + gcResultCodeParametersNotEnough + ", " + gcResultTextParametersNotEnough);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);
@@ -73,6 +73,7 @@ String		ss					= "";
 int			i					= 0;
 int			j					= 0;
 
+String		jobDescription		= "";
 //確認呼叫者身分
 sSQL = "SELECT App_Id";
 sSQL += " FROM cwallet_app_pair";
@@ -91,23 +92,28 @@ if (!sResultCode.equals(gcResultCodeSuccess)){	//有誤
 
 //根據不同action做不同的事
 if (action.equals("C")){	//Create
+	jobDescription = "Create new wallet";
 }
 
 if (action.equals("R")){	//Rename
+	jobDescription = "Rename wallet No. " + walletId + " to " + walletName;
 }
 
 if (action.equals("D")){	//Delete
+	jobDescription = "Delete wallet No. " + walletId;
 }
 
 if (action.equals("A")){	//Add currency to wallet
+	jobDescription = "Add currency " + currencyId + " to wallet No. " + walletId;
 }
 
-sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
+sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
 sSQL += "'" + generateRequestId() + "',";
+sSQL += "'" + jobDescription + "',";
 sSQL += "'" + action + "',";
 sSQL += "'" + appId + "',";
 sSQL += "'" + cardId + "',";
