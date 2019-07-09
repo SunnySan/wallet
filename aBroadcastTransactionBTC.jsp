@@ -75,47 +75,30 @@ try
 {
 	writeLog("debug", "Send transaction hex to " + sUrl + ", data= " + sData);
 
-String urlParameters  = sData;
-byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );
-int    postDataLength = postData.length;
+	String urlParameters  = sData;
+	byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );
+	int    postDataLength = postData.length;
 
-
-	
 	u = new URL(sUrl);
 	HttpURLConnection uc = (HttpURLConnection)u.openConnection();
-uc.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
-//uc.setRequestProperty( "charset", "utf-8");
-uc.setRequestProperty( "Content-Length", Integer.toString( postDataLength ));
-uc.setUseCaches( false );
+	uc.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
+	//uc.setRequestProperty( "charset", "utf-8");
+	uc.setRequestProperty( "Content-Length", Integer.toString( postDataLength ));
+	uc.setUseCaches( false );
 	uc.setRequestMethod("POST");
 	uc.setDoOutput(true);
 	uc.setDoInput(true);
 
 
-      uc.setRequestProperty("User-agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; zh-TW; rv:1.9.1.2) " + "Gecko/20090729 Firefox/3.5.2 GTB5 (.NET CLR 3.5.30729)"); 
-      uc.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"); 
-      uc.setRequestProperty("Accept-Language", "zh-tw,en-us;q=0.7,en;q=0.3"); 
-      uc.setRequestProperty("Accept-Charse", "Big5,utf-8;q=0.7,*;q=0.7"); 
-      //uc.setRequestProperty("Content-Length", sData.getBytes().length); 
-      /*
-      java.io.DataOutputStream dos = new java.io.DataOutputStream(uc 
-          .getOutputStream()); 
-      dos.writeBytes(sData); 
-      */
+	uc.setRequestProperty("User-agent", "Mozilla/5.0 (Windows; U; Windows NT 6.0; zh-TW; rv:1.9.1.2) " + "Gecko/20090729 Firefox/3.5.2 GTB5 (.NET CLR 3.5.30729)"); 
+	uc.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"); 
+	uc.setRequestProperty("Accept-Language", "zh-tw,en-us;q=0.7,en;q=0.3"); 
+	uc.setRequestProperty("Accept-Charse", "Big5,utf-8;q=0.7,*;q=0.7"); 
+	//uc.setRequestProperty("Content-Length", sData.getBytes().length); 
 
-
-
-try( DataOutputStream wr = new DataOutputStream( uc.getOutputStream())) {
-   wr.write( postData );
-}
-
-
-/*	
-	byte[] postData = sData.getBytes("UTF-8");	//避免中文亂碼問題
-	OutputStream os = uc.getOutputStream();
-	os.write(postData);
-	os.close();
-*/
+	try( DataOutputStream wr = new DataOutputStream( uc.getOutputStream())) {
+		wr.write( postData );
+	}
 	
 
 	InputStream in = uc.getInputStream();

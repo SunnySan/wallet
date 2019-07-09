@@ -134,7 +134,7 @@
 										<button type="button" class="btn btn-info" data-toggle='modal' data-target='#qrcodeScanner' onclick="startCamera();"><i class="fa fa-qrcode"></i></button>
 									</div>
 									<!-- /btn-group -->
-									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address" value="mzXuJo757JoxpiGqdwGiBu9BMWbto1PaAx">
+									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address" value="mn7ESa56NH17PrYLRuRip93gpuiQxqWJtc">
 								</div>
 
 								<!-- text input -->
@@ -155,6 +155,7 @@
 									<input type="text" id="transactionFee" class="form-control" placeholder="" disabled>
 								</div>
 								<div class="slider"></div>
+								<div>Slow<span class="pull-right">Fast</span></div>
 							</form>
 						</div><!-- /.box-body -->
 						<div class="box-footer clearfix">
@@ -315,12 +316,16 @@
 	var unspentTransaction = null;
 	var totalUnspent = 0.0;
 	var minFee = 0.0;	//1 input + 1 output 約 225 bytes
-	var feeBtcSatPerByte = 10;	//每byte給多少 Sat (聰)
+	var feeBtcSatPerByte = 0;	//每byte給多少 Sat (聰)
 	var txHash = "";	//Transaction hex
 	var hasCamera = false;
 	var myCameras = null;
 	
 	$(document).ready(function () {
+		checkAppCardWalletAndCurrency();
+		if (currencyId=="BTC") feeBtcSatPerByte = getDefaultTransactionFeeBtcMainnet();
+		else feeBtcSatPerByte = getDefaultTransactionFeeBtcTestnet();
+		
 		$('.slider').slider({
 			max: 80,
 			min: 0,
@@ -330,7 +335,6 @@
 			change: function( event, ui ) {$('#transactionFee').val((ui.value).toString())}
 		});
 		$('#transactionFee').val(feeBtcSatPerByte.toString());
-		checkAppCardWalletAndCurrency();
 	})
 
 	let scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
@@ -356,16 +360,16 @@
 
 	function startCamera(){
 		if (hasCamera) {
-		var selectedCam = myCameras[0];
-		$.each(myCameras, (i, c) => {
-			if (c.name.indexOf('back') != -1) {
-				selectedCam = c;
-				return false;
-			}
-		});
-		
-		scanner.start(selectedCam);
-
+			var selectedCam = myCameras[0];
+			$.each(myCameras, (i, c) => {
+				if (c.name.indexOf('back') != -1) {	//workaround，盡量設法使用手機背面的相機
+					selectedCam = c;
+					return false;
+				}
+			});
+			
+			scanner.start(selectedCam);
+	
 			//scanner.start(myCameras[0]);
 		} else {
 			msgBox('No cameras found.');
@@ -397,6 +401,7 @@
 		if (currencyId == "BTCTEST")	sUrl = "https://chain.so/api/v2/get_tx_unspent/BTCTEST/" + currencyAddress;
 		if (currencyId == "BTC")		sUrl = "https://chain.so/api/v2/get_tx_unspent/BTC/" + currencyAddress;
 		if (currencyId == "BTCTEST" || currencyId == "BTC") minFee = 0.00007425;	//1 input + 1 output
+		if (currencyId == "BTC" || currencyId == "BTC") minFee = 0.00007425;	//1 input + 1 output
 		//if (currencyId == "BTCTEST" || currencyId == "BTC") minFee = 0.00012276;	//2 input + 2 output
 
 		$.getJSON( sUrl, function(data) {
@@ -415,7 +420,6 @@
 			}
 			totalUnspent = totalUnspent.toFixed(8);	//小數點後8位
 			$('#availableMoney').text(", maximum available money = " + (totalUnspent-minFee).toFixed(8));
-			//$('#transactionFee').val(minFee);
 		})
 		.fail(function(d) {
 			msgBox("Failed to get unspent money");
@@ -425,6 +429,11 @@
 	}	//function getUnspentTransaction(){
 	
 	function doSend(){
+		$('#sig1').val('');
+		$('#sig2').val('');
+		$('#sig3').val('');
+		$('#sig4').val('');
+		$('#sig5').val('');
 		if (!checkUnspentMoney()) return;
 		generateRawTransactionData();
 	}	//function doSend(){
@@ -470,43 +479,39 @@
 			} else if (!(o.output_no).toString().match(/^[0-9]+$/i)){
 				hasError = true;
 			}
-console.log("0 estimatedTxSize= " + estimatedTxSize.toString());
+			//if (isDebugMode()) console.log("0 estimatedTxSize= " + estimatedTxSize.toString());
 			if(!hasError){
 				var seq = null;
 
 				var currentScript = o.script_hex;
 				if (currentScript.match(/^76a914[0-9a-f]{40}88ac$/)) {
 					estimatedTxSize += 147;
-console.log("1 estimatedTxSize= " + estimatedTxSize.toString());
+					//if (isDebugMode()) console.log("1 estimatedTxSize= " + estimatedTxSize.toString());
 				} else if (currentScript.match(/^5[1-9a-f](?:210[23][0-9a-f]{64}){1,15}5[1-9a-f]ae$/)) {
 					// <74:persig <1:push><72:sig><1:sighash> ><34:perpubkey <1:push><33:pubkey> > <32:prevhash><4:index><4:nSequence><1:m><1:n><1:OP>
 					var scriptSigSize = (parseInt(currentScript.slice(1,2),16) * 74) + (parseInt(currentScript.slice(-3,-2),16) * 34) + 43;
 					// varint 2 bytes if scriptSig is > 252
 					estimatedTxSize += scriptSigSize + (scriptSigSize > 252 ? 2 : 1);
-console.log("2 estimatedTxSize= " + estimatedTxSize.toString());
+					//if (isDebugMode()) console.log("2 estimatedTxSize= " + estimatedTxSize.toString());
 				} else {
 					// underestimating won't hurt. Just showing a warning window anyways.
 					estimatedTxSize += 147;
-console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
+					//if (isDebugMode()) console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 				}
 				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
 				addedMoney += parseFloat(o.value);
-				console.log(i.toString() + ", o.txid= " + o.txid + ", addedMoney=" + addedMoney);
+				if (isDebugMode()) console.log(i.toString() + ", o.txid= " + o.txid + ", unspent money= " + o.value + ", total added money=" + addedMoney);
 				totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
 				//如果你的輸出(outputs)小於0.01BTC(包括你錢包內部的資金變動)的話，你必須要支付0.0001的手續費，即使是你自己轉給你自己。
 				//參考 https://kknews.cc/finance/y65myrn.html
 				if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
-				console.log(i.toString() + "totalFee=" + totalFee);
-				console.log("addedMoney=" + addedMoney.toString());
-				console.log("amountToBeSent=" + amountToBeSent.toString());
-				console.log("totalFee=" + totalFee.toString());
-				/*
-				if (addedMoney==(amountToBeSent+totalFee)) alert("1");
-				if (addedMoney>(amountToBeSent+totalFee)) alert("2");
-				if (addedMoney<(amountToBeSent+totalFee)) alert("3");
-				*/
+				//if (isDebugMode()) console.log(i.toString() + "totalFee=" + totalFee);
+				//if (isDebugMode()) console.log("addedMoney=" + addedMoney.toString());
+				//if (isDebugMode()) console.log("amountToBeSent=" + amountToBeSent.toString());
+				//if (isDebugMode()) console.log("totalFee=" + totalFee.toString());
+
 				if (addedMoney==(amountToBeSent+totalFee)){
-					console.log("false 0");
+					//if (isDebugMode()) console.log("false 0");
 					return false; // 等於break
 				}else if (addedMoney>(amountToBeSent+totalFee)){
 					
@@ -515,15 +520,15 @@ console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 					estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
 					totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
 					if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
-					console.log(i.toString() + " else totalFee=" + totalFee);
+					//if (isDebugMode()) console.log(i.toString() + " else totalFee=" + totalFee);
 					if (addedMoney==(amountToBeSent+totalFee)){
-						console.log("false 1");
+						//if (isDebugMode()) console.log("false 1");
 						return false; // 等於break
 					}else if (addedMoney>(amountToBeSent+totalFee)){
 						tx.addoutput(currencyAddress, (addedMoney-amountToBeSent-totalFee).toString());
 						totalOutput += addedMoney-amountToBeSent-totalFee;
-						console.log(i.toString() + ", estimatedTxSize=" + estimatedTxSize.toString()+", add out amount" +(addedMoney-amountToBeSent-totalFee).toString());
-						console.log("false 2");
+						//if (isDebugMode()) console.log(i.toString() + ", estimatedTxSize=" + estimatedTxSize.toString()+", add out amount" +(addedMoney-amountToBeSent-totalFee).toString());
+						//if (isDebugMode()) console.log("false 2");
 						return false; // 等於break
 					}
 				}
@@ -537,22 +542,22 @@ console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 		if (!hasError){
 			var a = ($('#beneficiaryAddress').val());
 			var ad = coinjs.addressDecode(a);
-			//console.log(ad);
+			//if (isDebugMode()) console.log(ad);
 			if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
 				// P2SH output is 32, P2PKH is 34
 				estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
-console.log("5 estimatedTxSize= " + estimatedTxSize.toString());
+				//if (isDebugMode()) console.log("5 estimatedTxSize= " + estimatedTxSize.toString());
 				tx.addoutput(a, parseFloat($('#amountToBeSent').val()));
 				totalOutput += parseFloat($('#amountToBeSent').val());
 			} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
 				// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
 				estimatedTxSize += 78
 				tx.addstealth(ad, $('#amountToBeSent').val());
-console.log("6 estimatedTxSize= " + estimatedTxSize.toString());
+				//if (isDebugMode()) console.log("6 estimatedTxSize= " + estimatedTxSize.toString());
 			} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
 				estimatedTxSize += (a.length / 2) + 1 + 8
 				tx.adddata(a);
-console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
+				//if (isDebugMode()) console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 			} else { // neither address nor data
 				hasError = true;
 				msgBox("The address you entered is invalid");
@@ -562,8 +567,8 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 
 		if (!hasError){
 			totalFee = (addedMoney - totalOutput).toFixed(8);
-			console.log("total estimatedTxSize= " + estimatedTxSize.toString() + ", totalFee=" + totalFee.toString());
-			console.log(tx.serialize());
+			if (isDebugMode()) console.log("total estimatedTxSize= " + estimatedTxSize.toString() + ", totalFee=" + totalFee.toString());
+			if (isDebugMode()) console.log(tx.serialize());
 			getHashToBeSigned(tx.serialize());
 		}
 
@@ -573,7 +578,7 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 		var estimatedTxSize = 0;
 		var a = ($('#beneficiaryAddress').val());
 		var ad = coinjs.addressDecode(a);
-		//console.log(ad);
+		//if (isDebugMode()) console.log(ad);
 		if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
 			// P2SH output is 32, P2PKH is 34
 			estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
@@ -644,7 +649,7 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 			}else{
 				if (data.resultCode=="00000"){
 					$('#signedTransactionHex').html(data.txHex);
-					doBroadcast();
+					//doBroadcast();
 					//$('#tx_hex').val(data.txHex);
 					//$('#frmBroadcast').submit();
 				}else{
@@ -673,12 +678,17 @@ console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
 					$('#transactionHash').html(data.txid);
 					var msg = "Broadcast transaction to blockchain successfully.";
 					if (notEmpty(data.txid)){
-						msg += " Please visit <a href='https://www.blockchain.com/" + currencyId.toLowerCase() + "/tx/" + data.txid + "' target='_blank'>Blockchain web</a> for detailed information.";
+						if (currencyId=="BTC"){
+							msg += " Please visit <a href='https://www.blockchain.com/" + currencyId.toLowerCase() + "/tx/" + data.txid + "' target='_blank'>Blockchain web</a> for detailed information.";
+						}else{
+							//msg += " Please visit <a href='https://www.blockchain.com/" + currencyId.toLowerCase() + "/tx/" + data.txid + "' target='_blank'>Blockchain web</a> for detailed information.";
+							msg += " Please visit <a href='https://tbtc.bitaps.com/" + data.txid + "' target='_blank'>Bitaps web</a> for detailed information.";
+						}
 					}
 					msgBox(msg);
 					getUnspentTransaction();
 				}else if (data.resultText.contains("FileNotFoundException")){
-					msgBox("Failed to broadcast transaction to blockchain, might be caused by inappropriate transaction fee, please adjust the transaction fee then try again.");
+					msgBox("Failed to broadcast transaction to blockchain, might be caused by inappropriate transaction fee, or some input transactions are not confirmed, please make sure all your previous transactions are confirmed then try again, if the situation remains, please adjust the transaction fee then try again.");
 				}else{
 					msgBox("Failed to broadcast transaction to blockchain:<br>" + data.resultText);
 				}

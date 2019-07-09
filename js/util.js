@@ -2,11 +2,29 @@
 
 /**********全域變數**********/
 var sServerBaseURL = "./";	//Server端接收 request 的 URL 路徑
+var bIsDebugMode = true;	//是否為開發模式
+var iDefaultTransactionFeeBtcTestnet = 10;	//單位是 sat/byte
+var iDefaultTransactionFeeBtcMainnet = 32;	//單位是 sat/byte
 
 /**********取得 server API 的 base URL**********/
 function getServerBaseURL(){
 	return sServerBaseURL;
 }	//function getServerBaseURL(){
+
+/**********判斷是否為開發模式**********/
+function isDebugMode(){
+	return bIsDebugMode;
+}	//function isDebugMode(){
+
+/**********取得BTC testnet預設的transaction fee**********/
+function getDefaultTransactionFeeBtcTestnet(){
+	return iDefaultTransactionFeeBtcTestnet;
+}	//function getDefaultTransactionFeeBtcTestnet(){
+
+/**********取得BTC mainnet預設的transaction fee**********/
+function getDefaultTransactionFeeBtcMainnet(){
+	return iDefaultTransactionFeeBtcMainnet;
+}	//function getDefaultTransactionFeeBtcMainnet(){
 
 /**********判斷字串是否為空值**********/
 function beEmpty(s){

@@ -965,7 +965,7 @@
 			var o = {};
 			o.outpoint = {'hash':txid, 'index':index};
 			o.script = coinjs.script(script||[]);
-			console.log("script= " +o.script.toString());
+			//console.log("script= " +o.script.toString());
 			o.sequence = sequence || ((r.lock_time==0) ? 4294967295 : 0);
 			return this.ins.push(o);
 		}

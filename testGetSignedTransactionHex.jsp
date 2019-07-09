@@ -99,8 +99,18 @@ for (int i = 0; i < tx.getInputs().size(); i++) {
 	TransactionInput transactionInput = tx.getInput(i);
 	Script scriptPubKey = ScriptBuilder.createOutputScript(Address.fromString(params, address));
 	
+	ECKey.ECDSASignature sig1 = ECKey.ECDSASignature.decodeFromDER(hex2Byte(aSig[i]));
+	sig1 = sig1.toCanonicalised();
+	
 	TransactionSignature txSig = null;
+	
+	txSig = new TransactionSignature(sig1, Transaction.SigHash.ALL, true);
+
+	/*
 	txSig = new TransactionSignature(ECKey.ECDSASignature.decodeFromDER(hex2Byte(aSig[i])), Transaction.SigHash.ALL, true);
+	txSig = txSig.toCanonicalised();
+	*/
+
 	if (scriptPubKey.isSentToRawPubKey()) {
 		//transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig));
 		//transactionInput.setScriptSig(Script.createInputScript(hex2Byte("3045022100B04EA8A8E84364455DADEA51A5064FC7F33D8B559F45C04F06F179C9D0C9B38C02206BE340B3B593BCE4CC6C0F6584F44FD9EDFEEA862421E9B9B16E1694C6170222")));
