@@ -35,23 +35,11 @@ JSONObject	obj=new JSONObject();
 /*********************開始做事吧*********************/
 String appId		= nullToString(request.getParameter("appId"), "");
 String cardId		= nullToString(request.getParameter("cardId"), "");
-String action		= nullToString(request.getParameter("action"), "");	//C=Create, R=Rename, D=Delete, A=Add currency to wallet
-String walletId		= nullToString(request.getParameter("walletId"), "");
-String walletName	= nullToString(request.getParameter("walletName"), "");
-String currencyId	= nullToString(request.getParameter("currencyId"), "");	//Add currency to wallet時使用
+String idList		= nullToString(request.getParameter("idList"), "");
 
-writeLog("debug", "Do wallet manipulation, appId=" + appId + ", cardId=" + cardId + ", action=" + action + ", walletId=" + walletId + ", walletName=" + walletName);
+writeLog("debug", "Do cancel BIP jobs, appId=" + appId + ", cardId=" + cardId + ", idList=" + idList);
 
-if (beEmpty(appId) || appId.length()!=16 || beEmpty(cardId) || cardId.length()!=16 || beEmpty(action)){
-	writeLog("debug", "Return: " + gcResultCodeParametersNotEnough + ", " + gcResultTextParametersNotEnough);
-	obj.put("resultCode", gcResultCodeParametersNotEnough);
-	obj.put("resultText", gcResultTextParametersNotEnough);
-	out.print(obj);
-	out.flush();
-	return;
-}
-
-if ((action.equals("C") && beEmpty(walletName)) || ((action.equals("D")||action.equals("A")) && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName))) || (action.equals("A") && beEmpty(currencyId))){
+if (beEmpty(appId) || appId.length()!=16 || beEmpty(cardId) || cardId.length()!=16 || beEmpty(idList)){
 	writeLog("debug", "Return: " + gcResultCodeParametersNotEnough + ", " + gcResultTextParametersNotEnough);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);
@@ -90,39 +78,8 @@ if (!sResultCode.equals(gcResultCodeSuccess)){	//有誤
 	return;
 }
 
-//根據不同action做不同的事
-if (action.equals("C")){	//Create
-	jobDescription = "Create new wallet";
-}
-
-if (action.equals("R")){	//Rename
-	jobDescription = "Rename wallet No. " + walletId + " to " + walletName;
-}
-
-if (action.equals("D")){	//Delete
-	jobDescription = "Delete wallet No. " + walletId;
-}
-
-if (action.equals("A")){	//Add currency to wallet
-	jobDescription = "Add currency " + currencyId + " to wallet No. " + walletId;
-}
-
-sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
-sSQL += "'" + sUser + "',";
-sSQL += "'" + sDate + "',";
-sSQL += "'" + sUser + "',";
-sSQL += "'" + sDate + "',";
-sSQL += "'" + generateRequestId() + "',";
-sSQL += "'" + jobDescription + "',";
-sSQL += "'" + action + "',";
-sSQL += "'" + appId + "',";
-sSQL += "'" + cardId + "',";
-sSQL += "'" + walletId + "',";
-sSQL += "'" + walletName + "',";
-sSQL += "'" + currencyId + "',";
-sSQL += "'" + "" + "',";
-sSQL += "'" + "Init" + "'";
-sSQL += ")";
+sSQL = "UPDATE cwallet_bip_job_queue SET Status='Canceled'";
+sSQL += " WHERE id IN " + idList;
 
 sSQLList.add(sSQL);
 

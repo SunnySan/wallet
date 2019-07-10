@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -31,6 +31,9 @@
 	<!-- AdminLTE Skins. Choose a skin from the css/skins
 	folder instead of downloading all of them to reduce the load. -->
 	<link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
+
+	<!-- iCheck -->
+	<link rel="stylesheet" href="plugins/iCheck/flat/blue.css">
 
 	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -98,8 +101,8 @@
 		<!-- Content Header (Page header) -->
 		<section class="content-header">
 			<h1>
-				Receive Money
-				<small>Your address of <span class="currencyName" style="color:#FF0000;"></span> of wallet [<span class="sysWalletName" style="color:#FF0000;"></span>] in card <span class="sysCardId" style="color:#FF0000;"></span></small>
+				slimduet Cold Wallet SIM Card activities
+				<small>card id: <span class="sysCardId" style="color:#FF0000;"></span></small>
 			</h1>
 		</section>
 		
@@ -110,23 +113,73 @@
 				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
 				<h4><i class="icon fa fa-info"></i> Information</h4>
 				<ul>
-					<li>You may share this address with who wants to transfer money to you</li>
+					<li>In this page, we will show you last 100 SIM activities.</li>
+					<li>You may cancel the jobs which status is "Init" by checking the items and clicking the <i class="fa fa-trash-o"></i> icon</li>
 				</ul>
 			</div><!-- info window -->
 
 			<div class="row">
-				<div class="col-lg-6 col-xs-12">
+				<div class="col-lg-12 col-xs-12">
 					<div class="box">
 						<div class="box-header with-border">
-							<h3 class="box-title"><span class="currencyName"></span>&nbsp;Address</h3>
+							<h3 class="box-title">Activities</h3>
+							<div class="box-tools pull-right" style="display:none;">
+								<div class="has-feedback">
+									<input type="text" class="form-control input-sm" placeholder="Search">
+									<span class="glyphicon glyphicon-search form-control-feedback"></span>
+								</div>
+							</div><!-- /.box-tools -->
 						</div><!-- /.box-header -->
 						<div class="box-body">
-							<div id="addressQrcode"></div>
+							<div class="mailbox-controls">
+								<!-- Check all button -->
+								<button type="button" class="btn btn-default btn-sm checkbox-toggle"><i class="fa fa-square-o"></i>
+								</button>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-sm" onclick="doCancel();"><i class="fa fa-trash-o"></i></button>
+								</div>
+								<!-- /.btn-group -->
+								<button type="button" class="btn btn-default btn-sm" onclick="getBipJobQueueData();"><i class="fa fa-refresh"></i></button>
+								<div class="pull-right"  style="display:none;">
+									1-50/200
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-sm"><i class="fa fa-chevron-left"></i></button>
+										<button type="button" class="btn btn-default btn-sm"><i class="fa fa-chevron-right"></i></button>
+									</div><!-- /.btn-group -->
+								</div><!-- /.pull-right -->
+							</div>
+
+							<div class="table-responsive mailbox-messages">
+								<table class="table table-hover table-striped" id="tblResult">
+									<thead>
+										<tr>
+											<th style="width: 10px">&nbsp;</th>
+											<th>Time</th>
+											<th>Wallet name</th>
+											<th>Task</th>
+											<th>Status</th>
+										</tr>
+									</thead>
+
+									<tbody>
+										<!--
+										<tr>
+											<td><input type="checkbox"></td>
+											<td class="mailbox-name"></td>
+											<td class="mailbox-subject"><b></b></td>
+											<td class="mailbox-subject"></td>
+											<td class="mailbox-subject"></td>
+										</tr>
+										-->
+									</tbody>
+								</table><!-- /.table -->
+							</div><!-- /.mail-box-messages -->
+
+
+
+
 						</div><!-- /.box-body -->
 						<div class="box-footer clearfix">
-							<div class="col-lg-12 col-xs-12">
-								<div>Address:&nbsp;<h4 class="currencyAddress"></h4></div>
-							</div>
 						</div><!-- /.box-footer -->
 					</div><!-- /.box -->
 				</div><!-- /.col -->
@@ -159,6 +212,8 @@
 <script src="bower_components/fastclick/lib/fastclick.js"></script>
 <!-- AdminLTE App -->
 <script src="dist/js/adminlte.min.js"></script>
+<!-- iCheck -->
+<script src="plugins/iCheck/icheck.min.js"></script>
 
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="js/jquery.blockUI.js"></script>
@@ -173,43 +228,131 @@
 
 <script>
 	$(document).ready(function () {
-		checkAppCardWalletAndCurrency();
+		getBipJobQueueData();
+		//Enable check and uncheck all functionality
+		$(".checkbox-toggle").click(function () {
+			var clicks = $(this).data('clicks');
+			if (clicks) {
+				//Uncheck all checkboxes
+				$(".mailbox-messages input[type='checkbox']").iCheck("uncheck");
+				$(".fa", this).removeClass("fa-check-square-o").addClass('fa-square-o');
+			} else {
+				//Check all checkboxes
+				$(".mailbox-messages input[type='checkbox']").iCheck("check");
+				$(".fa", this).removeClass("fa-square-o").addClass('fa-check-square-o');
+			}
+			$(this).data("clicks", !clicks);
+		});
+
 	})
+	
+	function setCheckBox(){
+		//Enable iCheck plugin for checkboxes
+		//iCheck for checkbox and radio inputs
+		$('.mailbox-messages input[type="checkbox"]').iCheck({
+			checkboxClass: 'icheckbox_flat-blue',
+			radioClass: 'iradio_flat-blue'
+		});
+	}
 </script>
 
 <script>
-	function checkAppCardWalletAndCurrency(){
+	function checkAppAndCard(){
 		var appId = getLocalValue("SCWSysAppId");
 		var cardId = getLocalValue("SCWSysCardId");
-		var walletId = getLocalValue("SCWSysWalletId");
-		var walletName = getLocalValue("SCWSysWalletName");
-		var currencyRowId = getLocalValue("SCWSysCurrencyRowId");
-		var currencyId = getLocalValue("SCWSysCurrencyId");
-		var currencyName = getLocalValue("SCWSysCurrencyName");
-		var currencyPublicKey = getLocalValue("SCWSysCurrencyPublicKey");
-		var currencyAddress = getLocalValue("SCWSysCurrencyAddress");
-		if (beEmpty(appId) || beEmpty(cardId) || beEmpty(walletId) || beEmpty(walletName) || beEmpty(currencyRowId) || beEmpty(currencyId) || beEmpty(currencyName) || beEmpty(currencyPublicKey) || beEmpty(currencyAddress)){
-			msgBox("Information not enough, please ensure you had paired this application with your card, select a wallet, and click [Receive] button on the <a href='CheckBalance.html'>Check Balance page</a>!", function(){location.href="index.html";});
-			return;
+		if (beEmpty(appId) || beEmpty(cardId)){
+			msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
+			return false;
 		}else{
-			$('.currencyName').text(currencyName);
-			$('.currencyAddress').text(currencyAddress);
-			generateQrCode();
+			return true;
 		}
 	}
 	
-	function generateQrCode(){
-		var currencyId = getLocalValue("SCWSysCurrencyId");
-		var currencyAddress = getLocalValue("SCWSysCurrencyAddress");
-		
-		var leadingText = "";
-		if (currencyId=="BTC" || currencyId=="BTCTEST"){
-			leadingText = "bitcoin:";
-		}
-		$("#addressQrcode").html("");
-		var qrcode = new QRCode("addressQrcode");
-		qrcode.makeCode(leadingText + currencyAddress);
-	}
+	function getBipJobQueueData(){
+		if (!checkAppAndCard()) return;
+		$("#tblResult tbody").empty();
+		var sData = "";
+		var s = "";
+		var tmp = "";
 
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		sData = "appid=" + appId;
+		sData += "&cardid=" + cardId;
+
+		getDataFromServer("aGetBipJobQueueList.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get wallet list.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					s = "";
+					$.each( data.records, function(i, r) {
+						s += "<tr>";
+						if (r.Status!="Init"){
+							s += "<td>&nbsp;</td>";
+						}else{
+							s += "<td><input type='checkbox' value='" + r.id + "'></td>";
+						}
+						s += "<td class='mailbox-name'>" + r.Create_Date + "</td>";
+						s += "<td class='mailbox-subject'><b>" + r.Wallet_Name + "</b></td>";
+						s += "<td class='mailbox-subject'>" + r.Job_Description + "</td>";
+						s += "<td class='mailbox-subject'>" + r.Status + "</td>";
+
+						s += "</tr>";
+					});	//$.each( data.orders, function(i, r) {
+					$('#tblResult tbody').append(s);
+					setCheckBox();
+				}else if (data.resultCode=="00006"){
+					msgBox("No activity found");
+				}else{
+					msgBox("Failed to get activity list:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}	//function getBipJobQueueData(){
+
+	function doCancel(){
+		var sList = "";
+		var i = 0;
+		$('input[type=checkbox]').each(function () {
+			if (this.checked){
+				if (beEmpty(sList)) sList = "(" + $(this).val();
+				else sList += "," + $(this).val();
+				i++;
+			}
+		});
+		if (i==0){
+			msgBox("Please select the items to be canceled first.");
+			return;
+		}else{
+			sList = sList + ")";
+		}
+
+		var sData = "";
+		var s = "";
+		var tmp = "";
+
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		sData = "appId=" + appId;
+		sData += "&cardId=" + cardId;
+		sData += "&idList=" + sList;
+
+		getDataFromServer("aCancelBipJob.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get process result.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					msgBox("The selected item(s) had been canceled.", getBipJobQueueData);
+				}else{
+					msgBox("Operation failed:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
 </script>
 
