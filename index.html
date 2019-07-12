@@ -149,5 +149,7 @@
 		if (beEmpty(getLocalValue("SCWSysCardId"))){
 			msgBox("No card paired, please pair your slimduet Cold Wallet SIM card first!", function(){location.href="PairCard.html";});
 		}
+		var walletId = getLocalValue("SCWSysWalletId");
+		if (notEmpty(walletId)) location.href="CheckBalance.html";
 	})
 </script>

@@ -112,6 +112,7 @@
 				<ul>
 					<li>Each block represents the balance of certain cryptocurrency of this wallet</li>
 					<li>You may create more cryptocurrencies to store in this wallet</li>
+					<!--<li>Click the cryptocurrency icon to view the transaction history of this address</li>-->
 				</ul>
 			</div><!-- info window -->
 
@@ -241,8 +242,15 @@
 						s += "	<div class='box box-widget widget-user'>";
 						s += "		<!-- Add the bg color to the header using any of the bg-* classes -->";
 						s += "		<div class='widget-user-header bg-aqua-active'>";
-						s += "			<h3 class='widget-user-username'>" + r.Currency_Name + "</h3>";
-						s += "			<h5 class='widget-user-desc'>" + r.Currency_Id + "</h5>";
+						s += "			<h3 class='widget-user-username'>" + r.Currency_Name;
+						//s += "			<h5 class='widget-user-desc'>" + r.Currency_Id + "</h5>";
+						tmp = "";
+						if (r.Currency_Id=="BTC") tmp = "https://bitaps.com/" + r.Address;
+						if (r.Currency_Id=="BTCTEST") tmp = "https://tbtc.bitaps.com/" + r.Address;
+						if (notEmpty(tmp)){
+							s += "						<button type='button' class='btn btn-flat bg-maroon btn-sm pull-right' onclick='window.open(\"" + tmp + "\" , \"_blank\");'>History</button>";
+						}
+						s += "</h3>";
 						s += "		</div>";
 						s += "		<div class='widget-user-image'>";
 						s += "			<img class='img-circle' src='images/" + r.Currency_Id + ".png' alt='Coin picture'>";
@@ -293,6 +301,10 @@
 		$.each( currencyData.records, function(i, r) {
 			if (r.Currency_Id=="BTC") getBtcBalance("BTC", r.Address, r.id);
 			if (r.Currency_Id=="BTCTEST") getBtcBalance("BTCTEST", r.Address, r.id);
+			if (r.Currency_Id=="ETH" || r.Currency_Id=="ETHTEST"){
+				$('#c' + r.id + '-1').html("&nbsp;");
+				$('#c' + r.id + '-2').html("&nbsp;");
+			}
 		});	//$.each( data.orders, function(i, r) {
 	}
 	
@@ -338,6 +350,7 @@
 		var appId = getLocalValue("SCWSysAppId");
 		var cardId = getLocalValue("SCWSysCardId");
 		var walletId = getLocalValue("SCWSysWalletId");
+		var walletName = getLocalValue("SCWSysWalletName");
 
 		if (beEmpty(walletId)){
 			msgBox("Please select a wallet first. Click OK, we'll take you to My Wallet page to select a wallet.", function(){location.href="WalletManagement.html";});
@@ -354,6 +367,7 @@
 		sData += "&cardId=" + cardId;
 		sData += "&action=A";
 		sData += "&walletId=" + walletId;
+		sData += "&walletName=" + walletName;
 		sData += "&currencyId=" + currency;
 
 

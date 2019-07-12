@@ -100,7 +100,7 @@ if (action.equals("R")){	//Rename
 }
 
 if (action.equals("D")){	//Delete
-	jobDescription = "Delete wallet No. " + walletId;
+	jobDescription = "Delete wallet No. " + walletId + ", wallet name: " + walletName;
 }
 
 if (action.equals("A")){	//Add currency to wallet

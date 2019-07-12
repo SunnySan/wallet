@@ -50,6 +50,7 @@ JSONObject	obj=new JSONObject();
 String appId		= nullToString(request.getParameter("appId"), "");
 String cardId		= nullToString(request.getParameter("cardId"), "");
 String walletId		= nullToString(request.getParameter("walletId"), "");
+String walletName	= nullToString(request.getParameter("walletName"), "");
 String currencyId	= nullToString(request.getParameter("currencyId"), "");
 String txHash		= nullToString(request.getParameter("txHash"), "");
 String toAddress	= nullToString(request.getParameter("toAddress"), "");
@@ -80,7 +81,6 @@ int			j					= 0;
 String		address				= "";
 String		publicKey			= "";
 String		hashToBeSigned		= "";
-String		walletName			= "";
 String		transactionId		= generateRequestId();
 
 //確認呼叫者身分
@@ -119,7 +119,6 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	s = (String[][])ht.get("Data");
 	publicKey = s[0][0];
 	address = s[0][1];
-	walletName = s[0][2];
 }else{
 	obj.put("resultCode", sResultCode);
 	obj.put("resultText", sResultText);
@@ -158,7 +157,7 @@ sSQL += "'" + sDate + "',";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
 sSQL += "'" + transactionId + "',";
-sSQL += "'" + "Send " + currencyId + " to " + toAddress + "',";
+sSQL += "'" + "Send " + currencyId + " " + amount + " to " + toAddress + "',";
 sSQL += "'" + "T" + "',";
 sSQL += "'" + appId + "',";
 sSQL += "'" + cardId + "',";

@@ -342,7 +342,7 @@
 			msgBox("Please specify which wallet you want to delete.");
 			return;
 		}
-		doAction($("#walletIdToBeDeleted").val(), "", "D");
+		doAction($("#walletIdToBeDeleted").val(), $("#walletNameToBeDeleted").text(), "D");
 	}
 
 	function doAction(walletId, walletName, actionId){
@@ -370,7 +370,8 @@
 			sData += "&walletName=" + walletName;
 		}
 
-		if (actionId!="D"){	//C=Create, R=Rename, D=Delete
+		if (actionId=="D"){	//C=Create, R=Rename, D=Delete
+			sData += "&walletName=" + walletName;
 		}
 
 		getDataFromServer("aWalletManipulation.jsp", sData, "json", function(data){
