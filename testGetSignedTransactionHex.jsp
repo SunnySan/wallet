@@ -215,21 +215,6 @@ out.flush();
 
 <%!
 
-	//將 16 進位碼的字串轉為 byte array
-	public static byte[] hex2Byte(String hexString) {
-	        byte[] bytes = new byte[hexString.length() / 2];
-	        for (int i=0 ; i<bytes.length ; i++)
-	                bytes[i] = (byte) Integer.parseInt(hexString.substring(2 * i, 2 * i + 2), 16);
-	        return bytes;
-	}
-
-    //取得 byte array 每個 byte 的 16 進位碼
-    public static String byte2Hex(byte[] b) {
-        String result = "";
-        for (int i=0 ; i<b.length ; i++)
-            result += Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
-        return result;
-    }
 
 
 
