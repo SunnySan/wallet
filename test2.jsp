@@ -9,8 +9,12 @@
 <%@page import="org.apache.commons.io.IOUtils" %>
 <%@page import="java.util.*" %>
 
-
+<%@ page import="org.bitcoinj.script.*"%>
+<%@ page import="org.bitcoinj.core.ECKey"%>
+<%@ page import="org.bitcoinj.core.NetworkParameters"%>
+<%@ page import="java.math.BigInteger"%>
 <%@ page import="org.web3j.crypto.Keys"%>
+<%@ page import="org.web3j.crypto.ECKeyPair"%>
 
 <%@ page import="org.spongycastle.jce.spec.*"%>
 
@@ -76,8 +80,30 @@ sResponse += "<p>" + sha3_256hex;
 sResponse += "<p>uncomressed public key= " + byte2Hex(ECKey.fromPublicOnly(hex2Byte(sPublicKey)).decompress().getPubKey());
 */
 
-out.print(Keys.getAddress(sPublicKey));
+ECKey tempBitcoinKey = org.bitcoinj.core.ECKey.fromPublicOnly(hex2Byte(sPublicKey));
+tempBitcoinKey = tempBitcoinKey.decompress();
+byte[] bPublicKey = tempBitcoinKey.getPubKey();
+out.print("<p>bPublicKey= " + byte2Hex(bPublicKey).substring(2));
+String ss = byte2Hex(bPublicKey) + sPublicKey;
+byte[] bs = hex2Byte(ss);
+//ECKeyPair kp = Keys.deserialize(bs);
+//out.print("<p>deserialize address= " + Keys.getAddress(kp));
+
+byte[] bAddress = Keys.getAddress(bPublicKey);
+String sAddress = byte2Hex(bAddress);
+out.print("<p>sAddress= " + sAddress);
+out.print("<p>sAddress= " + Keys.getAddress(byte2Hex(bPublicKey)));
+
+out.print("<p>getAddress= " + Keys.getAddress(sPublicKey));
+out.print("<p>toChecksumAddress= " + Keys.toChecksumAddress(Keys.getAddress(sPublicKey)));
 out.print("<p>" + byte2Hex(Keys.getAddress(hex2Byte(sPublicKey))));
+
+BigInteger biPrivateKey = new BigInteger(hex2Byte(sPublicKey));
+BigInteger biPublicKey = new BigInteger(hex2Byte(byte2Hex(bPublicKey).substring(2)));
+ECKeyPair kp = new ECKeyPair(biPrivateKey, biPublicKey);
+out.print("<p>BigInteger to address= " + Keys.getAddress(biPublicKey));
+out.print("<p>deserialize address= " + Keys.getAddress(kp));
+
 /*
 String	myEthereumAddress = byte2Hex(org.ethereum.crypto.ECKey.fromPublicOnly(hex2Byte(sPublicKey)).getAddress());
 sResponse += "<p>myEthereumAddress= " + myEthereumAddress;
@@ -90,7 +116,7 @@ out.flush();
 %>
 
 <%!
-
+/*
 	//將 16 進位碼的字串轉為 byte array
 	public static byte[] hex2Byte(String hexString) {
 	        byte[] bytes = new byte[hexString.length() / 2];
@@ -107,5 +133,5 @@ out.flush();
         return result;
     }
 
-
+*/
 %>
