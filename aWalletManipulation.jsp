@@ -73,6 +73,8 @@ String		ss					= "";
 int			i					= 0;
 int			j					= 0;
 
+String		sApdu				= "";
+
 String		jobDescription		= "";
 //確認呼叫者身分
 sSQL = "SELECT App_Id";
@@ -93,18 +95,26 @@ if (!sResultCode.equals(gcResultCodeSuccess)){	//有誤
 //根據不同action做不同的事
 if (action.equals("C")){	//Create
 	jobDescription = "Create new wallet";
+	sApdu = "AABBDD3100000101010140";
 }
 
 if (action.equals("R")){	//Rename
 	jobDescription = "Rename wallet No. " + walletId + " to " + walletName;
+	sApdu = "AABBDD3100000101010243" + walletId;
 }
 
 if (action.equals("D")){	//Delete
 	jobDescription = "Delete wallet No. " + walletId + ", wallet name: " + walletName;
+	sApdu = "AABBDD3100000101010245" + walletId;
 }
 
 if (action.equals("A")){	//Add currency to wallet
 	jobDescription = "Add currency " + currencyId + " to wallet No. " + walletId;
+	sApdu = "00";	//default = BTC
+	if (currencyId.equals("BTCTEST")) sApdu = "01";
+	if (currencyId.equals("ETH") || currencyId.equals("ETHTEST")) sApdu = "60";
+	sApdu = "8000002C" + "800000" + sApdu + "80000000" + "00000000" + "00000000";
+	sApdu = "AABBDD310000010101" + Integer.toHexString(string2Hex(sApdu, "UTF8").length()+2) + "33" + walletId + sApdu;
 }
 
 sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
@@ -120,7 +130,7 @@ sSQL += "'" + cardId + "',";
 sSQL += "'" + walletId + "',";
 sSQL += "'" + walletName + "',";
 sSQL += "'" + currencyId + "',";
-sSQL += "'" + "" + "',";
+sSQL += "'" + sApdu + "',";
 sSQL += "'" + "Init" + "'";
 sSQL += ")";
 
