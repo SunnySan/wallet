@@ -15,6 +15,8 @@
 <%@ page import="javax.mail.internet.*"%>
 <%@ page import="javax.activation.*"%>
 
+<%@ page import="java.math.BigInteger" %>
+
 <%@page import="org.json.simple.JSONObject" %>
 
 <%
@@ -716,6 +718,84 @@ public static String byte2Hex(byte[] b) {
     for (int i=0 ; i<b.length ; i++)
         result += Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
     return result;
+}
+
+/*********************************************************************************************************************/
+
+//取得字串的 16 進位碼
+public String string2Hex(String strValue, String charset) {
+	byte byteData[] = null;
+	int intHex = 0;
+	String strHex = "";
+	String strReturn = "";
+	try {
+		byteData = strValue.getBytes(charset);
+		for (int intI=0;intI<byteData.length;intI++){
+			intHex = (int)byteData[intI];
+			if (intHex<0)
+			intHex += 256;
+			if (intHex<16) strHex += "0" + Integer.toHexString(intHex).toUpperCase();
+			else strHex += Integer.toHexString(intHex).toUpperCase();
+		}
+		strReturn = strHex;
+	}
+	catch (Exception ex) {
+		ex.printStackTrace();
+		return "";
+	}
+	return strReturn;
+}
+
+/*********************************************************************************************************************/
+
+public String hexToString(String strValue, String charset) {
+	int intCounts = strValue.length() / 2;
+	String strReturn = "";
+	String strHex = "";
+	int intHex = 0;
+	byte byteData[] = new byte[intCounts];
+	try {
+		for (int intI = 0; intI < intCounts; intI++) {
+			strHex = strValue.substring(0, 2);
+			strValue = strValue.substring(2);
+			intHex = Integer.parseInt(strHex, 16);
+			if (intHex > 128) intHex = intHex - 256;
+			byteData[intI] = (byte) intHex;
+		}
+		strReturn = new String(byteData, charset);
+	}
+	catch (Exception ex) {
+		ex.printStackTrace();
+		return "";
+	}
+	return strReturn;
+}
+   
+/*********************************************************************************************************************/
+
+//將 byte array 轉成一個個 char 的字串
+public static String bytesToStringUTFCustom(byte[] bytes) {
+	char[] buffer = new char[bytes.length >> 1];
+	for(int i = 0; i < buffer.length; i++) {
+		int bpos = i << 1;
+		char c = (char)(((bytes[bpos]&0x00FF)<<8) + (bytes[bpos+1]&0x00FF));
+		buffer[i] = c;
+	}
+	return new String(buffer);
+}
+
+/*********************************************************************************************************************/
+
+//將一個個 char 的字串轉成 byte array
+public static byte[] stringToBytesUTFCustom(String str) {
+	char[] buffer = str.toCharArray();
+	byte[] b = new byte[buffer.length << 1];
+	for(int i = 0; i < buffer.length; i++) {
+		int bpos = i << 1;
+		b[bpos] = (byte) ((buffer[i]&0xFF00)>>8);
+		b[bpos + 1] = (byte) (buffer[i]&0x00FF);
+	}
+	return b;
 }
 
 /*********************************************************************************************************************/

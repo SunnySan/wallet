@@ -7,7 +7,6 @@
 
 <%@include file="00_constants.jsp"%>
 <%@include file="00_utility.jsp"%>
-<%@include file="00_security.jsp"%>
 
 <%
 /***************輸入範例********************************************************
@@ -33,8 +32,8 @@ String	sResponse	= "";
 OutputStream o		= null;
 /*********************開始做事吧*********************/
 
-String cardId		= nullToString(request.getParameter("cardid"), "");
-String pairCode		= nullToString(request.getParameter("paircode"), "");
+String cardId		= nullToString(request.getParameter("cardId"), "");
+String pairCode		= nullToString(request.getParameter("pairCode"), "");
 
 if (beEmpty(cardId) || beEmpty(pairCode) || cardId.length()!=16 || pairCode.length()!=6){
 	writeLog("debug", String.valueOf(cardId.length()) + "," + String.valueOf(pairCode.length()) + "BIP card pairing parameter not found for Card_Id= " + cardId + ", Pair_Code=" + pairCode);
