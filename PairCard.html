@@ -172,6 +172,8 @@
 	function doPairCard(){
 		var sData = "";
 
+		clearCookie();
+
 		getDataFromServer("aGetCardPairCode.jsp", sData, "json", function(data){
 			if (!data.resultCode || !data.resultText){
 				msgBox("Unable to get process result.");

@@ -51,7 +51,8 @@ if (beEmpty(appId) || appId.length()!=16 || beEmpty(cardId) || cardId.length()!=
 	return;
 }
 
-if ((action.equals("C") && beEmpty(walletName)) || ((action.equals("D")||action.equals("A")) && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName))) || (action.equals("A") && beEmpty(currencyId))){
+//if ((action.equals("C") && beEmpty(walletName)) || ((action.equals("D")||action.equals("A")) && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName))) || (action.equals("A") && beEmpty(currencyId))){
+if (((action.equals("D")||action.equals("A")) && beEmpty(walletId)) || (action.equals("R") && (beEmpty(walletId) || beEmpty(walletName))) || (action.equals("A") && beEmpty(currencyId))){
 	writeLog("debug", "Return: " + gcResultCodeParametersNotEnough + ", " + gcResultTextParametersNotEnough);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);

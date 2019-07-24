@@ -226,10 +226,15 @@ function getDataFromServer(sProgram, sData, sResponseType, SuccessCallback, bBlo
 }	//function sServerBaseURL(sProgram, sData, sResponseType, SuccessCallback){
 
 function clearCookie(){	//清除 cookie 中的登入資料
-	$.removeCookie('DPUserID');
-	$.removeCookie('DPUserName');
-	$.removeCookie('DPUserEmail');
-	$.removeCookie('DPUserRole');
+	setLocalValue('SCWSysAppId', '');
+	setLocalValue('SCWSysCardId', '');
+	setLocalValue('SCWSysCurrencyAddress', '');
+	setLocalValue('SCWSysCurrencyId', '');
+	setLocalValue('SCWSysCurrencyName', '');
+	setLocalValue('SCWSysCurrencyPublicKey', '');
+	setLocalValue('SCWSysCurrencyRowId', '');
+	setLocalValue('SCWSysWalletId', '');
+	setLocalValue('SCWSysWalletName', '');
 	return true;
 }
 
