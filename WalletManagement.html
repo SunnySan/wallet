@@ -303,7 +303,8 @@
 						s += "<td style='text-align:center;'>" + r.Wallet_Id + "</td>";
 						s += "<td style='padding-left:5px;'>" + ((notEmpty(walletId)&&walletId==r.Wallet_Id)?"(*)&nbsp;":"") + r.Wallet_Name + "</td>";
 						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' onclick='doSelect(\"" + r.Wallet_Id + "\", \"" + r.Wallet_Name + "\");'>Select</button>" + "</td>";
-						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' data-toggle='modal' data-target='#modalRename' onclick='$(\"#walletIdToBeRenamed\").val(\"" + r.Wallet_Id + "\");$(\"#OldWalletNameToBeRenamed\").val(\"" + r.Wallet_Name + "\");'>Rename</button>" + "</td>";
+						//s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' data-toggle='modal' data-target='#modalRename' onclick='$(\"#walletIdToBeRenamed\").val(\"" + r.Wallet_Id + "\");$(\"#OldWalletNameToBeRenamed\").val(\"" + r.Wallet_Name + "\");'>Rename</button>" + "</td>";
+						s += "<td>" + "<button type='button' class='btn btn-primary btn-sm' onclick='$(\"#walletIdToBeRenamed\").val(\"" + r.Wallet_Id + "\");$(\"#OldWalletNameToBeRenamed\").val(\"" + r.Wallet_Name + "\");doRename();'>Rename</button>" + "</td>";
 						s += "<td>" + "<button type='button' class='btn btn-danger btn-sm' data-toggle='modal' data-target='#confirmDelete' onclick='$(\"#walletIdToBeDeleted\").val(\"" + r.Wallet_Id + "\");$(\"#walletNameToBeDeleted\").text(\"" + r.Wallet_Name + "\");'>Delete</button>" + "</td>";
 						s += "</tr>";
 					});	//$.each( data.orders, function(i, r) {
@@ -340,13 +341,11 @@
 	}
 
 	function doDelete(){
-		/*
 		$('#confirmDelete').modal('hide');
 		if (beEmpty($("#walletIdToBeDeleted").val())){
 			msgBox("Please specify which wallet you want to delete.");
 			return;
 		}
-		*/
 		doAction($("#walletIdToBeDeleted").val(), $("#walletNameToBeDeleted").text(), "D");
 	}
 

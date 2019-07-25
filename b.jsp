@@ -52,7 +52,7 @@ writeLog("debug", "BIP command= " + requestString);
 if (beEmpty(requestString) || requestString.length()<18){
 	writeLog("debug", "BIP cmd is invalid= " + requestString);
 	sResponse = "Invalid parameter";
-	sResponse = "AABBDDA20000010101" + Integer.toHexString(string2Hex(sResponse, "UTF8").length()) + "04" + string2Hex(sResponse, "UTF8");
+	sResponse = "AABBDDA20000010101" + Integer.toHexString(string2Hex(sResponse, "UTF8").length()+1) + "04" + string2Hex(sResponse, "UTF8");
 	writeLog("debug", "Response= " + sResponse);
 	o = response.getOutputStream();
 	o.write(hex2Byte(sResponse));
@@ -96,11 +96,33 @@ if (cmd.equals("51")){	//Sign – Get Data
 if (cmd.equals("52")){	//Sign - Signature
 }	//if (cmd.equals("52")){	//Sign - Signature
 
-if (cmd.equals("")){	//
-}	//
+if (cmd.equals("40")){	//Create Wallet
+	sJsp = "bWalletManipulation.jsp";
+	sData = "cardId=" + cardId;
+	sData += "&action=C";
+	sData += "&data=" + content;
+}	//if (cmd.equals("40")){	//Create Wallet
 
-if (cmd.equals("")){	//
-}	//
+if (cmd.equals("41")){	//Import Wallet
+	sJsp = "bWalletManipulation.jsp";
+	sData = "cardId=" + cardId;
+	sData += "&action=I";
+	sData += "&data=" + content;
+}	//if (cmd.equals("41")){	//Import Wallet
+
+if (cmd.equals("43")){	//Rename Wallet
+	sJsp = "bWalletManipulation.jsp";
+	sData = "cardId=" + cardId;
+	sData += "&action=R";
+	sData += "&data=" + content;
+}	//if (cmd.equals("43")){	//Rename Wallet
+
+if (cmd.equals("45")){	//Delete Wallet
+	sJsp = "bWalletManipulation.jsp";
+	sData = "cardId=" + cardId;
+	sData += "&action=D";
+	sData += "&data=" + content;
+}	//if (cmd.equals("45")){	//Delete Wallet
 
 if (cmd.equals("")){	//
 }	//
@@ -204,11 +226,11 @@ if (bOK && notEmpty(sResponse)){	//有取得JSP的回應
 		if (beEmpty(sApdu)) sResponse = "AABBDDA0000001010100";
 		else sResponse = sApdu;
 	}else{
-		sResponse = "AABBDDA20000010101" + Integer.toHexString(string2Hex(sResultText, "UTF8").length()) + "04" + string2Hex(sResultText, "UTF8");
+		sResponse = "AABBDDA20000010101" + MakesUpZero(Integer.toHexString(string2Hex(sResultText, "UTF8").length()/2+1), 2) + "04" + string2Hex(sResultText, "UTF8");
 	}
 }else{
 	sResultText = "Unknown error";
-	sResponse = "AABBDDA20000010101" + Integer.toHexString(string2Hex(sResultText, "UTF8").length()) + "04" + string2Hex(sResultText, "UTF8");
+	sResponse = "AABBDDA20000010101" + MakesUpZero(Integer.toHexString(string2Hex(sResultText, "UTF8").length()/2+1), 2) + "04" + string2Hex(sResultText, "UTF8");
 }	//if (notEmpty(sResponse)){	//有取得JSP的回應
 
 writeLog("debug", "Response message= " + sResponse);

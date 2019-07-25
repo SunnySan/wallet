@@ -100,22 +100,22 @@ if (action.equals("C")){	//Create
 }
 
 if (action.equals("R")){	//Rename
-	jobDescription = "Rename wallet No. " + walletId + " to " + walletName;
-	sApdu = "AABBDD3100000101010243" + walletId;
+	jobDescription = "Rename wallet No. " + walletId + " [" + walletName + "]";
+	sApdu = "AABBDD3100000101010243" + MakesUpZero(walletId, 2);
 }
 
 if (action.equals("D")){	//Delete
 	jobDescription = "Delete wallet No. " + walletId + ", wallet name: " + walletName;
-	sApdu = "AABBDD3100000101010245" + walletId;
+	sApdu = "AABBDD3100000101010245" + MakesUpZero(walletId, 2);
 }
 
 if (action.equals("A")){	//Add currency to wallet
 	jobDescription = "Add currency " + currencyId + " to wallet No. " + walletId;
 	sApdu = "00";	//default = BTC
 	if (currencyId.equals("BTCTEST")) sApdu = "01";
-	if (currencyId.equals("ETH") || currencyId.equals("ETHTEST")) sApdu = "60";
-	sApdu = "8000002C" + "800000" + sApdu + "80000000" + "00000000" + "00000000";
-	sApdu = "AABBDD310000010101" + Integer.toHexString(string2Hex(sApdu, "UTF8").length()+2) + "33" + walletId + sApdu;
+	if (currencyId.equals("ETH") || currencyId.equals("ETHTEST")) sApdu = "3C";
+	sApdu = "8000002C" + "800000" + sApdu + "80000000" + "00000000" + "00000000";	//Path
+	sApdu = "AABBDD310000010101" + MakesUpZero(Integer.toHexString(sApdu.length()/2+2), 2) + "33" + MakesUpZero(walletId, 2) + sApdu;
 }
 
 sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";

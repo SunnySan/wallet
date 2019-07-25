@@ -64,9 +64,6 @@ String		ss					= "";
 int			i					= 0;
 int			j					= 0;
 
-byte[]		p1					= null;
-byte[]		p2					= null;
-
 sSQL = "SELECT id, App_Id";
 sSQL += " FROM cwallet_app_pair";
 sSQL += " WHERE Pair_Code='" + pairCode + "'";
