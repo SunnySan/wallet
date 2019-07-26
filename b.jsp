@@ -85,9 +85,17 @@ if (cmd.equals("31")){	//Sync System
 }	//if (cmd.equals("31")){	//Sync System
 
 if (cmd.equals("32")){	//Upload Wallet
+	sJsp = "bWalletManipulation.jsp";
+	sData = "cardId=" + cardId;
+	sData += "&action=U";
+	sData += "&data=" + content;
 }	//if (cmd.equals("32")){	//Upload Wallet
 
 if (cmd.equals("33")){	//Get child (從卡片傳回
+	sJsp = "bWalletManipulation.jsp";
+	sData = "cardId=" + cardId;
+	sData += "&action=A";
+	sData += "&data=" + content;
 }	//if (cmd.equals("33")){	//Get child (從卡片傳回
 
 if (cmd.equals("51")){	//Sign – Get Data

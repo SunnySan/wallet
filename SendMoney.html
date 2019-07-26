@@ -472,6 +472,7 @@
 		var totalFee = 0.00000000;
 		var totalOutput = 0.00000000;
 		var autoCalculateFee = false;
+		var usedInputCount = 0;
 
 		if (beEmpty($('#transactionFee').val()) || $('#transactionFee').val()=="0") autoCalculateFee = true;
 		else feeBtcSatPerByte = $('#transactionFee').val();
@@ -509,6 +510,7 @@
 					estimatedTxSize += 147;
 					//if (isDebugMode()) console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 				}
+				usedInputCount ++;
 				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
 				addedMoney += parseFloat(o.value);
 				if (isDebugMode()) console.log(i.toString() + ", o.txid= " + o.txid + ", unspent money= " + o.value + ", total added money=" + addedMoney);
@@ -549,6 +551,13 @@
 				return false;
 			}
 		});
+
+		//Sunny: 以下為了POC階段卡片只能sign一個hash
+		if (usedInputCount>1){
+			msgBox("There are " + usedInputCount + " inputs should be signed, currently we can only sign one input hash, please enter a smaller amount and try again.");
+			return;
+		}
+		//Sunny: 以上為了POC階段卡片只能sign一個hash
 
 		if (!hasError){
 			var a = ($('#beneficiaryAddress').val());
