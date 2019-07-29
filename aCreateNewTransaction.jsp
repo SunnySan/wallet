@@ -158,7 +158,7 @@ ss = "Do you want to send  " + currencyId + " " + amount + " to " + toAddress + 
 ss = string2Hex(ss, "UTF8");
 sApdu = "AABBDD310000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+3), 2) + "50" + MakesUpZero(walletId, 2) + MakesUpZero(Integer.toHexString(ss.length()/2), 2) + ss;
 
-sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Transaction_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
+sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Transaction_Id, Wallet_Id, Wallet_Name, Currency_Id, CMD, APDU, Status) VALUES (";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
 sSQL += "'" + sUser + "',";
@@ -172,6 +172,7 @@ sSQL += "'" + transactionId + "',";
 sSQL += "'" + walletId + "',";
 sSQL += "'" + walletName + "',";
 sSQL += "'" + currencyId + "',";
+sSQL += "'" + "50" + "',";
 sSQL += "'" + sApdu + "',";
 sSQL += "'" + "Init" + "'";
 sSQL += ")";

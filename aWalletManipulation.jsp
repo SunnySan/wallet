@@ -74,6 +74,7 @@ String		ss					= "";
 int			i					= 0;
 int			j					= 0;
 
+String		sCmd				= "";
 String		sApdu				= "";
 
 String		jobDescription		= "";
@@ -96,21 +97,25 @@ if (!sResultCode.equals(gcResultCodeSuccess)){	//有誤
 //根據不同action做不同的事
 if (action.equals("C")){	//Create
 	jobDescription = "Create new wallet";
+	sCmd = "40";
 	sApdu = "AABBDD3100000101010140";
 }
 
 if (action.equals("R")){	//Rename
 	jobDescription = "Rename wallet No. " + walletId + " [" + walletName + "]";
+	sCmd = "43";
 	sApdu = "AABBDD3100000101010243" + MakesUpZero(walletId, 2);
 }
 
 if (action.equals("D")){	//Delete
 	jobDescription = "Delete wallet No. " + walletId + ", wallet name: " + walletName;
+	sCmd = "45";
 	sApdu = "AABBDD3100000101010245" + MakesUpZero(walletId, 2);
 }
 
 if (action.equals("A")){	//Add currency to wallet
 	jobDescription = "Add currency " + currencyId + " to wallet No. " + walletId;
+	sCmd = "33";
 	sApdu = "00";	//default = BTC
 	if (currencyId.equals("BTCTEST")) sApdu = "01";
 	if (currencyId.equals("ETH") || currencyId.equals("ETHTEST")) sApdu = "3C";
@@ -118,7 +123,7 @@ if (action.equals("A")){	//Add currency to wallet
 	sApdu = "AABBDD310000010101" + MakesUpZero(Integer.toHexString(sApdu.length()/2+2), 2) + "33" + MakesUpZero(walletId, 2) + sApdu;
 }
 
-sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, APDU, Status) VALUES (";
+sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Wallet_Id, Wallet_Name, Currency_Id, CMD, APDU, Status) VALUES (";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
 sSQL += "'" + sUser + "',";
@@ -131,6 +136,7 @@ sSQL += "'" + cardId + "',";
 sSQL += "'" + walletId + "',";
 sSQL += "'" + walletName + "',";
 sSQL += "'" + currencyId + "',";
+sSQL += "'" + sCmd + "',";
 sSQL += "'" + sApdu + "',";
 sSQL += "'" + "Init" + "'";
 sSQL += ")";

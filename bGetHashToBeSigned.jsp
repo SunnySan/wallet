@@ -39,15 +39,15 @@ String	sResponse	= "";
 
 String cardId		= nullToString(request.getParameter("cardId"), "");
 
-if (beEmpty(cardId) || cardId.length()!=16){
-	writeLog("debug", "BIP card pairing parameter not found for Card_Id= " + cardId);
+if (beEmpty(cardId)){
+	writeLog("debug", "BIP get data to be signed parameter not found for Card_Id= " + cardId);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);
 	out.print(obj);
 	out.flush();
 	return;
 }else{
-	writeLog("debug", "BIP sync system for Card_Id= " + cardId);
+	writeLog("debug", "BIP get data to be signed for Card_Id= " + cardId);
 }
 
 Hashtable	ht					= new Hashtable();
@@ -62,15 +62,22 @@ String		sUser				= "System";
 String		ss					= "";
 int			i					= 0;
 int			j					= 0;
+int			k					= 0;
+int			l					= 0;
 
-String		sApdu				= "";
-java.lang.Boolean	bOK			= false;
+String	walletId				= "";
+String	path					= "";
+String	currencyId				= "";
+String	hashToBeSigned			= "";
+String	sApdu					= "";
 
-sSQL = "SELECT id, APDU";
-sSQL += " FROM cwallet_bip_job_queue";
-sSQL += " WHERE Card_Id='" + cardId + "'";
-sSQL += " AND Status='Init'";
-sSQL += " ORDER BY id desc";
+sSQL = "SELECT B.Wallet_Id, B.Currency_Id, B.Hash_To_Be_Signed";
+sSQL += " FROM cwallet_bip_job_queue A, cwallet_transaction B";
+sSQL += " WHERE A.Card_Id='" + cardId + "'";
+sSQL += " AND A.CMD='" + "50" + "'";
+sSQL += " AND A.Status='" + "Sync" + "'";
+sSQL += " AND A.Transaction_Id=B.Transaction_Id";
+sSQL += " ORDER BY A.id desc";
 sSQL += " LIMIT 1";
 
 ht = getDBData(sSQL, gcDataSourceNameCMSIOT);
@@ -79,29 +86,23 @@ sResultCode = ht.get("ResultCode").toString();
 sResultText = ht.get("ResultText").toString();
 if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	s = (String[][])ht.get("Data");
-	sApdu = s[0][1];
+	walletId = s[0][0];
+	currencyId = s[0][1];
+	hashToBeSigned = s[0][2];
+	sApdu = "00";	//default = BTC
+	if (currencyId.equals("BTCTEST")) sApdu = "01";
+	if (currencyId.equals("ETH") || currencyId.equals("ETHTEST")) sApdu = "3C";
+	sApdu = "8000002C" + "800000" + sApdu + "80000000" + "00000000" + "00000000";	//Path
+	sApdu = "AABBDD510000010101" + MakesUpZero(Integer.toHexString((sApdu+hashToBeSigned).length()/2+1), 2) + MakesUpZero(walletId, 2) + sApdu + hashToBeSigned;
 	obj.put("apdu", sApdu);
-	bOK = true;
-}else if (sResultCode.equals(gcResultCodeNoDataFound)){	//沒資料，沒事幹
-	sResultCode = gcResultCodeSuccess;
-	sResultText = gcResultTextSuccess;
-	sApdu = "AABBDD3100000101010100";	//No action
-	obj.put("apdu", sApdu);
-}else{	//有錯誤
-	writeLog("debug", "BIP sync system failed, sResultCode= " + sResultCode + ", sResultText= " + sResultText);
+}else{
+	writeLog("error", "BIP get hash to be signed failed, sResultCode= " + sResultCode + ", sResultText= " + sResultText);
 	obj.put("resultCode", sResultCode);
 	obj.put("resultText", sResultText);
 	out.print(obj);
 	out.flush();
 	return;
-}
-
-//更新DB
-if (bOK){
-	sSQL = "UPDATE cwallet_bip_job_queue SET Status='Sync' WHERE id=" + s[0][0];
-	sSQLList.add(sSQL);
-	ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);
-}
+}	//if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 
 
 obj.put("resultCode", sResultCode);

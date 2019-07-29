@@ -118,13 +118,36 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	}
 
 	if (action.equals("A")){	//A=Add currency to wallet
+		currencyId = "ETH";
+		sSQL = "SELECT Wallet_Id, Currency_Id";
+		sSQL += " FROM cwallet_bip_job_queue";
+		sSQL += " WHERE Card_Id='" + cardId + "'";
+		sSQL += " AND CMD='33'";
+		sSQL += " ORDER BY id desc";
+		sSQL += " LIMIT 1";
+		
+		ht = getDBData(sSQL, gcDataSourceNameCMSIOT);
+		
+		sResultCode = ht.get("ResultCode").toString();
+		sResultText = ht.get("ResultText").toString();
+		if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
+			s = (String[][])ht.get("Data");
+			currencyId = s[0][1];
+		}else{
+			writeLog("debug", "BIP get child job not found for Card_Id= " + cardId + ", action=" + action + ", data=" + data);
+			obj.put("resultCode", gcResultCodeNoDataFound);
+			obj.put("resultText", gcResultTextNoDataFound);
+			out.print(obj);
+			out.flush();
+			return;
+		}
+		/*
 		path = data.substring(2, 42);
 		currencyType = path.substring(14, 16);
 		publicyKey = data.substring(42);
-		writeLog("debug", "path= " + path);
-		writeLog("debug", "currencyType= " + currencyType);
-		writeLog("debug", "publicyKey= " + publicyKey);
-		currencyId = "ETH";
+		*/
+		publicyKey = data.substring(2);
+		/*
 		if (currencyType.equals("00")){
 			currencyId = "BTC";
 			address = getBitcoinAddressFromPublicKey(currencyId, publicyKey);
@@ -133,6 +156,17 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 			currencyId = "BTCTEST";
 			address = getBitcoinAddressFromPublicKey(currencyId, publicyKey);
 		}
+		*/
+		if (currencyId.equals("BTC")){
+			address = getBitcoinAddressFromPublicKey(currencyId, publicyKey);
+		}
+		if (currencyId.equals("BTCTEST")){
+			address = getBitcoinAddressFromPublicKey(currencyId, publicyKey);
+		}
+		//writeLog("debug", "path= " + path);
+		//writeLog("debug", "currencyType= " + currencyType);
+		writeLog("debug", "currencyId= " + currencyId);
+		writeLog("debug", "publicyKey= " + publicyKey);
 		writeLog("debug", "address= " + address);
 		sSQL = "DELETE FROM cwallet_wallet_currency";
 		sSQL += " WHERE Card_Id='" + cardId + "'";

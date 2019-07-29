@@ -40,7 +40,10 @@ out.clear();	//注意，一定要有out.clear();，要不然client端無法解�
 
 //String	sResponse	= "AABBDDA0000001010100";
 String	sResponse	= "";
-String	myURL		= request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath()+"/";	//目前程式所處的URL路徑，不含檔名
+
+//Sunny: 注意，第一行是一般用的，第二行是 cms.gslssd.com 的 docker 用的
+//String	myURL		= request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath()+"/";	//目前程式所處的URL路徑，不含檔名
+String	myURL		= "http://ip-172-31-31-149.ap-southeast-1.compute.internal:8080/wallet/";	//目前程式所處的URL路徑，不含檔名
 
 OutputStream o		= null;
 /*********************開始做事吧*********************/
@@ -99,9 +102,14 @@ if (cmd.equals("33")){	//Get child (從卡片傳回
 }	//if (cmd.equals("33")){	//Get child (從卡片傳回
 
 if (cmd.equals("51")){	//Sign – Get Data
+	sJsp = "bGetHashToBeSigned.jsp";
+	sData = "cardId=" + cardId;
 }	//if (cmd.equals("51")){	//Sign – Get Data
 
 if (cmd.equals("52")){	//Sign - Signature
+	sJsp = "bPushSignedTransaction.jsp";
+	sData = "cardId=" + cardId;
+	sData += "&data=" + content;
 }	//if (cmd.equals("52")){	//Sign - Signature
 
 if (cmd.equals("40")){	//Create Wallet
@@ -132,56 +140,6 @@ if (cmd.equals("45")){	//Delete Wallet
 	sData += "&data=" + content;
 }	//if (cmd.equals("45")){	//Delete Wallet
 
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
-
-if (cmd.equals("")){	//
-}	//
 
 if (notEmpty(sJsp)){	//執行相對應的作業
 	try{

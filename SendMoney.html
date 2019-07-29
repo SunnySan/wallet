@@ -649,6 +649,7 @@
 						s += "<p>" + r.hash.toUpperCase();
 					});	//$.each( data.orders, function(i, r) {
 					$('#hashForSigning').html(s);
+					msgBox("Please launch STK on your phone, click [Sync system] to resume this job!");
 				}else{
 					msgBox("Failed to get hash data for signing:<br>" + data.resultText);
 				}
