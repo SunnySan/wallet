@@ -51,6 +51,8 @@ OutputStream o		= null;
 String requestString		= nullToString(request.getParameter("c"), "");
 
 writeLog("debug", "BIP command= " + requestString);
+requestString = requestString.replaceAll("/", "");
+writeLog("debug", "BIP command (remove slash)= " + requestString);
 
 if (beEmpty(requestString) || requestString.length()<18){
 	writeLog("debug", "BIP cmd is invalid= " + requestString);
