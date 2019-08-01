@@ -49,6 +49,8 @@ JSONObject	obj=new JSONObject();
 
 String sPublicKey			= nullToString(request.getParameter("PublicKey"), "");
 
+sPublicKey = sPublicKey.replaceAll("0x", "");
+sPublicKey = sPublicKey.replaceAll("0X", "");
 writeLog("debug", "PublicKey= " + sPublicKey);
 
 if (beEmpty(sPublicKey)){
@@ -101,8 +103,8 @@ out.print("<p>" + byte2Hex(Keys.getAddress(hex2Byte(sPublicKey))));
 BigInteger biPrivateKey = new BigInteger(hex2Byte(sPublicKey));
 BigInteger biPublicKey = new BigInteger(hex2Byte(byte2Hex(bPublicKey).substring(2)));
 ECKeyPair kp = new ECKeyPair(biPrivateKey, biPublicKey);
-out.print("<p>BigInteger to address= " + Keys.getAddress(biPublicKey));
-out.print("<p>deserialize address= " + Keys.getAddress(kp));
+//out.print("<p>BigInteger to address= " + Keys.getAddress(biPublicKey));
+//out.print("<p>deserialize address= " + Keys.getAddress(kp));
 
 /*
 String	myEthereumAddress = byte2Hex(org.ethereum.crypto.ECKey.fromPublicOnly(hex2Byte(sPublicKey)).getAddress());

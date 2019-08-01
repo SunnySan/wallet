@@ -9,6 +9,10 @@
 <%@ page import="org.bitcoinj.core.ECKey"%>
 <%@ page import="org.bitcoinj.core.NetworkParameters"%>
 
+<%@ page import="org.web3j.crypto.Keys"%>
+<%@ page import="org.web3j.crypto.ECKeyPair"%>
+<%@ page import="org.spongycastle.jce.spec.*"%>
+
 <%@include file="00_constants.jsp"%>
 <%@include file="00_utility.jsp"%>
 
@@ -162,6 +166,9 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 		}
 		if (currencyId.equals("BTCTEST")){
 			address = getBitcoinAddressFromPublicKey(currencyId, publicyKey);
+		}
+		if (currencyId.equals("ETH") || currencyId.equals("ETHTEST")){
+			address = Keys.toChecksumAddress(Keys.getAddress(publicyKey));
 		}
 		//writeLog("debug", "path= " + path);
 		//writeLog("debug", "currencyType= " + currencyType);

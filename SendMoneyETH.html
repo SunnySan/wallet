@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Taisys</title>
+	<link rel="apple-touch-icon" sizes="180x180" href="./images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="./images/favicon-16x16.png">
+	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+	<!-- Tell the browser to be responsive to screen width -->
+	<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+	<!-- Bootstrap 3.3.7 -->
+	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+	<!-- Font Awesome -->
+	<link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
+	<!--<script src="js/fontawesome.js"></script>-->
+	<!-- Ionicons -->
+	<link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
+  
+	<!--<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">-->
+	
+	<!-- Select2 -->
+	<link rel="stylesheet" href="bower_components/select2/dist/css/select2.min.css">	
+	<!-- daterange picker -->
+	<link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css">
+
+	<link rel="stylesheet" href="css/jquery-ui.min.css" type="text/css" /><!-- Jquery UI -->
+	
+
+	<!-- Theme style -->
+	<link rel="stylesheet" href="dist/css/AdminLTE.min.css">
+	<!-- AdminLTE Skins. Choose a skin from the css/skins
+	folder instead of downloading all of them to reduce the load. -->
+	<link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
+
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+	<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+	<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	<![endif]-->
+	
+	<!-- Google Font -->
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<!-- Site wrapper -->
+<div class="wrapper">
+
+	<header class="main-header">
+		<!-- Logo -->
+		<a href="index2.html" class="logo">
+			<!-- mini logo for sidebar mini 50x50 pixels -->
+			<span class="logo-mini"><b id="sysLogoMini"></b></span>
+			<!-- logo for regular state and mobile devices -->
+			<span class="logo-lg" id="sysLogoLarge"><b></b></span>
+		</a>
+		<!-- Header Navbar: style can be found in header.less -->
+		<nav class="navbar navbar-static-top">
+			<!-- Sidebar toggle button-->
+			<a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</a>
+			
+			<div class="navbar-custom-menu">
+				<ul class="nav navbar-nav">
+					<!-- User Account: style can be found in dropdown.less -->
+					<li class="dropdown user user-menu">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							<span class="hidden-xs sysCardId">No card paired</span>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+
+	<!-- =============================================== -->
+	
+	<!-- Left side column. contains the sidebar -->
+	<aside class="main-sidebar">
+		<!-- sidebar: style can be found in sidebar.less -->
+		<section class="sidebar">
+			<!-- sidebar menu: : style can be found in sidebar.less -->
+			<ul class="sidebar-menu" id="sysSidebarMenu" data-widget="tree"><!-- menu content is genarated by menu.js -->
+				<li class="header">Main Navigation</li>
+			</ul>
+		</section>
+		<!-- /.sidebar -->
+	</aside>
+
+	<!-- =============================================== -->
+	
+	<!-- Content Wrapper. Contains page content -->
+	<div class="content-wrapper">
+		<!-- Content Header (Page header) -->
+		<section class="content-header">
+			<h1>
+				Send Money
+				<small>Send money with <span class="currencyName" style="color:#FF0000;"></span> of wallet [<span class="sysWalletName" style="color:#FF0000;"></span>] in card <span class="sysCardId" style="color:#FF0000;"></span></small>
+			</h1>
+		</section>
+		
+		<!-- Main content -->
+		<section class="content">
+
+			<div class="alert alert-info alert-dismissible"><!-- info window -->
+				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+				<h4><i class="icon fa fa-info"></i> Information</h4>
+				<ul>
+					<li>Please enter the destination address and amount, then click Send button</li>
+					<li>If the transaction is not accepted by the blockchain, please adjust the transaction fee and try again</li>
+				</ul>
+			</div><!-- info window -->
+
+			<div id="existingCurrencies">
+			</div>
+
+			<div class="row">
+				<div class="col-lg-6 col-xs-12">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title">Send&nbsp;<span class="currencyName"></span>&nbsp;<span id="availableMoney"></span></h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+							<form role="form">
+
+								<div class="input-group">
+									<div class="input-group-btn">
+										<button type="button" class="btn btn-info" data-toggle='modal' data-target='#qrcodeScanner' onclick="startCamera();"><i class="fa fa-qrcode"></i></button>
+									</div>
+									<!-- /btn-group -->
+									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address" value="0x65D28726cFA311F80e2C02608185C9900861aad7">
+								</div>
+
+								<!-- text input -->
+								<!--
+								<div class="form-group">
+									<label>Address</label>
+									<input type="text" id="beneficiaryAddress" class="form-control" placeholder="Beneficiary address" value="mzXuJo757JoxpiGqdwGiBu9BMWbto1PaAx">
+								</div>
+								-->
+								<!-- text input -->
+								<div class="form-group">
+									<label>Amount</label>
+									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent">
+								</div>
+								<div class="row">
+									<!-- text input -->
+									<div class="form-group col-lg-6 col-xs-12">
+										<label>Gas Limit</label>
+										<input type="text" id="transactionFee" class="form-control" placeholder="" disabled>
+									</div>
+								</div>
+								<div class="slider"></div>
+								<div>Slow<span class="pull-right">Fast</span></div>
+							</form>
+						</div><!-- /.box-body -->
+						<div class="box-footer clearfix">
+							<div class="col-lg-12 col-xs-12">
+								<button type="button" id="transactionBtn" class="btn btn-block btn-danger btn-lg" onclick="doSend();">Send</button>
+							</div>
+							<div>Hash(s) to be signed</div>
+							<div id="hashForSigning"></div>
+						</div><!-- /.box-footer -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+
+
+
+
+
+				<!--<div class="col-lg-6 col-xs-12" style="display:none;">--><!--Sunny: 隱藏不顯示-->
+				<div class="col-lg-6 col-xs-12">
+					<div class="box">
+						<div class="box-header with-border">
+							<h3 class="box-title">Signature(s)</h3>
+						</div><!-- /.box-header -->
+						<div class="box-body">
+							<form role="form">
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 1</label>
+									<input type="text" id="sig1" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 2</label>
+									<input type="text" id="sig2" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 3</label>
+									<input type="text" id="sig3" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 4</label>
+									<input type="text" id="sig4" class="form-control" placeholder="" value="">
+								</div>
+								<!-- text input -->
+								<div class="form-group">
+									<label>Signature 5</label>
+									<input type="text" id="sig5" class="form-control" placeholder="" value="">
+								</div>
+							</form>
+						</div><!-- /.box-body -->
+						<div class="box-footer clearfix">
+							<div class="col-lg-12 col-xs-12">
+								<button type="button" id="transactionBtn" class="btn btn-block btn-danger btn-lg" onclick="doGetSignedData();">Sign transaction and send to blockchain</button>
+							</div>
+							<div style="display:none;">Signed transaction hex</div>
+							<div id="signedTransactionHex"></div>
+
+
+							<form id="frmBroadcast" action="https://chain.so/api/v2/send_tx/BTCTEST" method="POST" target="_blank">
+								<input type="hidden" id="tx_hex" name="tx_hex">
+								<input type="submit" value="Submit" style="display:none;">
+							</form>
+
+
+							<div class="col-lg-12 col-xs-12"  style="display:none;">
+								<button type="button" id="broadcastBtn" class="btn btn-block btn-danger btn-lg" onclick="doBroadcast();">Send to blockchain</button>
+							</div>
+							<div  style="display:none;">Transaction hash(ID)</div>
+							<div id="transactionHash"  style="display:none;"></div>
+						</div><!-- /.box-footer -->
+					</div><!-- /.box -->
+				</div><!-- /.col -->
+
+
+
+
+
+			</div><!-- row -->
+
+			<!-- Modal for QRCode scanner -->
+			<div class="modal modal-info fade" id="qrcodeScanner">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-body">
+							<video id="preview" style="width:100%;"></video>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline pull-left" data-dismiss="modal" onclick="if (typeof(scanner)=='object'){scanner.stop();}">Cancel</button>
+						</div>
+					</div><!-- /.modal-content -->
+				</div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+
+		</section><!-- /.content -->
+	</div><!-- /.content-wrapper -->
+
+	<footer class="main-footer">
+		<div class="pull-right hidden-xs">
+			Powered by <a href="https://adminlte.io" target="_blank">Almsaeed Studio</a>
+		</div>
+		<strong>Copyright &copy; 2019 <a href="https://www.taisys.com.tw/" target="_blank">Taisys</a>.</strong> All rights reserved.
+	</footer>
+
+</div>
+<!-- ./wrapper -->
+
+<div class="hidden" id="entropybucket"></div>
+</body>
+</html>
+
+<!-- jQuery 3 -->
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<!--<script type="text/javascript" src="js/moment.min.js"></script>-->
+<!--<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>-->
+<script type="text/javascript" src="js/crypto-min.js"></script>
+<script type="text/javascript" src="js/crypto-sha256.js"></script>
+<script type="text/javascript" src="js/crypto-sha256-hmac.js"></script>
+<script type="text/javascript" src="js/sha512.js"></script>
+<script type="text/javascript" src="js/ripemd160.js"></script>
+<script type="text/javascript" src="js/aes.js"></script>
+<script type="text/javascript" src="js/jsbn.js"></script>
+<!--<script type="text/javascript" src="js/ellipticcurve.js"></script>-->
+
+<!-- SlimScroll -->
+<script src="bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/jquery.blockUI.js"></script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/jquery.cookie.js"></script><!--處理cookie，參考網頁：https://github.com/carhartl/jquery-cookie -->
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/menu.js"></script>
+
+<script type="text/javascript" src="js/coin.js"></script>
+<!--<script type="text/javascript" src="js/coinbin.js"></script>-->
+
+<!-- Select2 -->
+<script src="bower_components/select2/dist/js/select2.full.min.js"></script>
+
+<script src="js/instascan.min.js"></script>
+
+<script>
+	var appId = "";
+	var cardId = "";
+	var walletId = "";
+	var walletName = "";
+	var currencyRowId = "";
+	var currencyId = "";
+	var currencyName = "";
+	var currencyPublicKey = "";
+	var currencyAddress = "";
+	var unspentTransaction = null;
+	var totalUnspent = 0.0;
+	var minFee = 0.0;	//1 input + 1 output 約 225 bytes
+	var GasLimit = 2520.0;	//Gas Limit, 需除以 100000000
+	var txHash = "";	//Transaction hex
+	var hasCamera = false;
+	var myCameras = null;
+	
+	$(document).ready(function () {
+		checkAppCardWalletAndCurrency();
+		
+		$('.slider').slider({
+			max: 252000,
+			min: 2520,
+			step: 2500,
+			value: GasLimit,
+			slide: function( event, ui ) {$('#transactionFee').val((parseFloat(ui.value)/100000000).toFixed(8).toString())},
+			change: function( event, ui ) {$('#transactionFee').val((parseFloat(ui.value)/100000000).toFixed(8).toString())}
+		});
+		$('#transactionFee').val((GasLimit/100000000).toFixed(8).toString());
+	})
+
+	let scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
+	scanner.addListener('scan', function (content) {
+		$('#beneficiaryAddress').val(content);
+		scanner.stop();
+		$('#qrcodeScanner').modal('hide');
+	});
+	Instascan.Camera.getCameras().then(function (cameras) {
+		if (cameras.length > 0) {
+			myCameras = cameras;
+			hasCamera = true;
+			//scanner.start(cameras[0]);
+		} else {
+			console.error('No cameras found.');
+		}
+	}).catch(function (e) {
+		console.error(e);
+	});
+
+	function startCamera(){
+		if (hasCamera) {
+			var selectedCam = myCameras[0];
+			$.each(myCameras, (i, c) => {
+				if (c.name.indexOf('back') != -1) {	//workaround，盡量設法使用手機背面的相機
+					selectedCam = c;
+					return false;
+				}
+			});
+			
+			scanner.start(selectedCam);
+	
+			//scanner.start(myCameras[0]);
+		} else {
+			msgBox('No cameras found.');
+		}
+	}
+
+	function checkAppCardWalletAndCurrency(){
+		appId = getLocalValue("SCWSysAppId");
+		cardId = getLocalValue("SCWSysCardId");
+		walletId = getLocalValue("SCWSysWalletId");
+		walletName = getLocalValue("SCWSysWalletName");
+		currencyRowId = getLocalValue("SCWSysCurrencyRowId");
+		currencyId = getLocalValue("SCWSysCurrencyId");
+		currencyName = getLocalValue("SCWSysCurrencyName");
+		currencyPublicKey = getLocalValue("SCWSysCurrencyPublicKey");
+		currencyAddress = getLocalValue("SCWSysCurrencyAddress");
+		if (beEmpty(appId) || beEmpty(cardId) || beEmpty(walletId) || beEmpty(walletName) || beEmpty(currencyRowId) || beEmpty(currencyId) || beEmpty(currencyName) || beEmpty(currencyPublicKey) || beEmpty(currencyAddress)){
+			msgBox("Information not enough, please ensure you had paired this application with your card, select a wallet, and click [Send] button on the <a href='CheckBalance.html'>Check Balance page</a>!", function(){location.href="index.html";});
+			return;
+		}else{
+			$('.currencyName').text(currencyName);
+			//$('.currencyAddress').text(currencyAddress);
+			getMaxSpentableMoney();
+		}
+	}
+
+	function getMaxSpentableMoney(){
+		var myApiKey = "3WPHYZR4JBK7C37Z5UEE821SJR3KRSYSP1";
+		var sUrl = (currencyId=="ETH"?"api":"api-ropsten");
+		//https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken
+		sUrl = "https://" + sUrl + ".etherscan.io/api?module=account&action=balance&address=" + currencyAddress + "&tag=latest&apikey=" + myApiKey;
+		
+		$.getJSON( sUrl, function(data) {
+			if (beEmpty(data.status) || data.status!="1"){
+				msgBox("Fail to get unspent data for " + currencyId + ": " + currencyAddress);
+				return;
+			}
+			$('#availableMoney').text(", maximum available money = " + (parseFloat(data.result)-GasLimit*10000000000)/1000000000000000000).toFixed(8).toString();
+		})
+		.fail(function(d) {
+			msgBox("Failed to get unspent money");
+			$('#availableMoney').text("Failed to get unspent money");
+		});	//$.getJSON( "./point.json", function(data) { 
+
+	}	//function getMaxSpentableMoney(){
+	
+	function doSend(){
+		$('#sig1').val('');
+		$('#sig2').val('');
+		$('#sig3').val('');
+		$('#sig4').val('');
+		$('#sig5').val('');
+		$('#estimatedFee').val('');
+		$('#signedTransactionHex').val('');
+		
+		if (!checkUnspentMoney()) return;
+		generateRawTransactionData();
+	}	//function doSend(){
+	
+	function checkUnspentMoney(){
+		var amountToBeSent = parseFloat($('#amountToBeSent').val());
+		if (beEmpty($('#beneficiaryAddress').val())){
+			msgBox("Please input beneficiary address");
+			return false;
+		}
+		if (beEmpty($('#amountToBeSent').val()) || amountToBeSent>(totalUnspent-minFee)){
+			msgBox("You are trying to send " + amountToBeSent.toString() + ", but have a balance of " + (totalUnspent-minFee).toString());
+			return false;
+		}
+		return true;
+	}	//function checkUnspentMoney(){
+	
+	function generateRawTransactionData(){
+		var amountToBeSent = parseFloat($('#amountToBeSent').val());
+		var tx = coinjs.transaction();
+		var estimatedTxSize = 10; // <4:version><1:txInCount><1:txOutCount><4:nLockTime>
+		var hasError = false;
+		var addedMoney = 0.00000000;
+		var ad = null;
+		var totalFee = 0.00000000;
+		var totalOutput = 0.00000000;
+		var autoCalculateFee = false;
+		var usedInputCount = 0;
+
+		if (beEmpty($('#transactionFee').val()) || $('#transactionFee').val()=="0") autoCalculateFee = true;
+		else GasLimit = $('#transactionFee').val();
+
+		$.each(unspentTransaction.txs, function(i,o){
+			if (autoCalculateFee){
+				GasLimit = (i+1)*5;
+				$('#transactionFee').val(GasLimit.toString());
+				$( '.slider' ).slider( "value", GasLimit );
+			}
+			
+			if(!(o.txid).match(/^[a-f0-9]+$/i)){
+				hasError = true;
+			} else if((!(o.script_hex).match(/^[a-f0-9]+$/i)) && $(".txIdScript",o).val()!=""){
+				hasError = true;
+			} else if (!(o.output_no).toString().match(/^[0-9]+$/i)){
+				hasError = true;
+			}
+			//if (isDebugMode()) console.log("0 estimatedTxSize= " + estimatedTxSize.toString());
+			if(!hasError){
+				var seq = null;
+
+				var currentScript = o.script_hex;
+				if (currentScript.match(/^76a914[0-9a-f]{40}88ac$/)) {
+					estimatedTxSize += 147;
+					//if (isDebugMode()) console.log("1 estimatedTxSize= " + estimatedTxSize.toString());
+				} else if (currentScript.match(/^5[1-9a-f](?:210[23][0-9a-f]{64}){1,15}5[1-9a-f]ae$/)) {
+					// <74:persig <1:push><72:sig><1:sighash> ><34:perpubkey <1:push><33:pubkey> > <32:prevhash><4:index><4:nSequence><1:m><1:n><1:OP>
+					var scriptSigSize = (parseInt(currentScript.slice(1,2),16) * 74) + (parseInt(currentScript.slice(-3,-2),16) * 34) + 43;
+					// varint 2 bytes if scriptSig is > 252
+					estimatedTxSize += scriptSigSize + (scriptSigSize > 252 ? 2 : 1);
+					//if (isDebugMode()) console.log("2 estimatedTxSize= " + estimatedTxSize.toString());
+				} else {
+					// underestimating won't hurt. Just showing a warning window anyways.
+					estimatedTxSize += 147;
+					//if (isDebugMode()) console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
+				}
+				usedInputCount ++;
+				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
+				addedMoney += parseFloat(o.value);
+				if (isDebugMode()) console.log(i.toString() + ", o.txid= " + o.txid + ", unspent money= " + o.value + ", total added money=" + addedMoney);
+				totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*GasLimit/100000000;
+				//如果你的輸出(outputs)小於0.01BTC(包括你錢包內部的資金變動)的話，你必須要支付0.0001的手續費，即使是你自己轉給你自己。
+				//參考 https://kknews.cc/finance/y65myrn.html
+				if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
+				//if (isDebugMode()) console.log(i.toString() + "totalFee=" + totalFee);
+				//if (isDebugMode()) console.log("addedMoney=" + addedMoney.toString());
+				//if (isDebugMode()) console.log("amountToBeSent=" + amountToBeSent.toString());
+				//if (isDebugMode()) console.log("totalFee=" + totalFee.toString());
+
+				if (addedMoney==(amountToBeSent+totalFee)){
+					//if (isDebugMode()) console.log("false 0");
+					return false; // 等於break
+				}else if (addedMoney>(amountToBeSent+totalFee)){
+					
+					ad = coinjs.addressDecode(currencyAddress);
+					// P2SH output is 32, P2PKH is 34
+					estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
+					totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*GasLimit/100000000;
+					if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
+					//if (isDebugMode()) console.log(i.toString() + " else totalFee=" + totalFee);
+					if (addedMoney==(amountToBeSent+totalFee)){
+						//if (isDebugMode()) console.log("false 1");
+						return false; // 等於break
+					}else if (addedMoney>(amountToBeSent+totalFee)){
+						tx.addoutput(currencyAddress, (addedMoney-amountToBeSent-totalFee).toString());
+						totalOutput += addedMoney-amountToBeSent-totalFee;
+						//if (isDebugMode()) console.log(i.toString() + ", estimatedTxSize=" + estimatedTxSize.toString()+", add out amount" +(addedMoney-amountToBeSent-totalFee).toString());
+						//if (isDebugMode()) console.log("false 2");
+						return false; // 等於break
+					}
+				}
+			} else {
+				msgBox("Parsing error with the unspent data");
+				hasError = true;
+				return false;
+			}
+		});
+
+		//Sunny: 以下為了POC階段卡片只能sign一個hash
+		if (usedInputCount>1){
+			msgBox("There are " + usedInputCount + " inputs should be signed, currently we can only sign one input hash, please enter a smaller amount and try again.");
+			return;
+		}
+		//Sunny: 以上為了POC階段卡片只能sign一個hash
+
+		if (!hasError){
+			var a = ($('#beneficiaryAddress').val());
+			var ad = coinjs.addressDecode(a);
+			//if (isDebugMode()) console.log(ad);
+			if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
+				// P2SH output is 32, P2PKH is 34
+				estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
+				//if (isDebugMode()) console.log("5 estimatedTxSize= " + estimatedTxSize.toString());
+				tx.addoutput(a, parseFloat($('#amountToBeSent').val()));
+				totalOutput += parseFloat($('#amountToBeSent').val());
+			} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
+				// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
+				estimatedTxSize += 78
+				tx.addstealth(ad, $('#amountToBeSent').val());
+				//if (isDebugMode()) console.log("6 estimatedTxSize= " + estimatedTxSize.toString());
+			} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
+				estimatedTxSize += (a.length / 2) + 1 + 8
+				tx.adddata(a);
+				//if (isDebugMode()) console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
+			} else { // neither address nor data
+				hasError = true;
+				msgBox("The address you entered is invalid");
+				return;
+			}
+		}
+
+		if (!hasError){
+			totalFee = (addedMoney - totalOutput).toFixed(8);
+			$('#estimatedFee').val(totalFee);
+			if (isDebugMode()) console.log("total estimatedTxSize= " + estimatedTxSize.toString() + ", totalFee=" + totalFee.toString());
+			if (isDebugMode()) console.log(tx.serialize());
+			getHashToBeSigned(tx.serialize());
+		}
+
+	}	//function generateRawTransactionData(){
+	
+	function getBeneficiaryOutputDataSize(){
+		var estimatedTxSize = 0;
+		var a = ($('#beneficiaryAddress').val());
+		var ad = coinjs.addressDecode(a);
+		//if (isDebugMode()) console.log(ad);
+		if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
+			// P2SH output is 32, P2PKH is 34
+			estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
+		} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
+			// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
+			estimatedTxSize += 78
+		} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
+			estimatedTxSize += (a.length / 2) + 1 + 8
+		} else { // neither address nor data
+			msgBox("The address you entered is invalid");
+		}
+		return estimatedTxSize;
+	}
+	
+	function getHashToBeSigned(unsignedHsh){
+		var sData = "";
+		var s = "";
+		var tmp = "";
+
+		txHash = unsignedHsh;
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		var walletId = getLocalValue("SCWSysWalletId");
+		sData = "appId=" + appId;
+		sData += "&cardId=" + cardId;
+		sData += "&walletId=" + walletId;
+		sData += "&walletName=" + walletName;
+		sData += "&currencyId=" + currencyId;
+		sData += "&txHash=" + txHash;
+		sData += "&toAddress=" + $('#beneficiaryAddress').val();
+		sData += "&amount=" + $('#amountToBeSent').val();
+		sData += "&transactionFee=" + $('#estimatedFee').val();
+		sData += "&txHash=" + txHash;
+		sData += "&address=" + currencyAddress;
+		sData += "&publicKey=" + currencyPublicKey;
+		sData += "&currencyId=" + currencyId;
+
+		//getDataFromServer("testGetHashToBeSigned.jsp", sData, "json", function(data){
+		getDataFromServer("aCreateNewTransaction.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get hash data for signing.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					s = "";
+					$.each( data.records, function(i, r) {
+						s += "<p>" + r.hash.toUpperCase();
+					});	//$.each( data.orders, function(i, r) {
+					$('#hashForSigning').html(s);
+					msgBox("Please launch STK on your phone, click [Sync system] to resume this job!");
+				}else{
+					msgBox("Failed to get hash data for signing:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
+	
+	function doGetSignedData(){
+		var sData = "";
+		var s = "";
+		var tmp = "";
+		
+		s = "&sig=" + $('#sig1').val() + "," + $('#sig2').val() + "," + $('#sig3').val() + "," + $('#sig4').val() + "," + $('#sig5').val();
+
+		var appId = getLocalValue("SCWSysAppId");
+		var cardId = getLocalValue("SCWSysCardId");
+		var walletId = getLocalValue("SCWSysWalletId");
+		sData = "txHash=" + txHash;
+		sData += "&address=" + currencyAddress;
+		sData += "&publicKey=" + currencyPublicKey;
+		sData += "&currencyId=" + currencyId;
+		sData += s;
+
+		getDataFromServer("testGetSignedTransactionHex.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get signed transaction hex.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					$('#signedTransactionHex').html(data.txHex);
+					doBroadcast();
+					//$('#tx_hex').val(data.txHex);
+					//$('#frmBroadcast').submit();
+				}else{
+					msgBox("Failed to get signed transaction hex:<br>" + data.resultText);
+				}
+			}
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+	}
+
+	function doBroadcast(){
+		var sData = "";
+		var s = "";
+		var tmp = "";
+		
+		sData = "cointype=" + currencyId;
+		sData += "&txhex=" + $('#signedTransactionHex').html();
+
+		//alert("go");
+		getDataFromServer("aBroadcastTransactionBTC.jsp", sData, "json", function(data){
+			if (!data.resultCode || !data.resultText){
+				msgBox("Unable to get signed transaction hex.");
+				return;
+			}else{
+				if (data.resultCode=="00000"){
+					$('#transactionHash').html(data.txid);
+					var msg = "Broadcast transaction to blockchain successfully.";
+					if (notEmpty(data.txid)){
+						if (currencyId=="BTC"){
+							msg += " Please visit <a href='https://www.blockchain.com/" + currencyId.toLowerCase() + "/tx/" + data.txid + "' target='_blank'>Blockchain web</a> for detailed information.";
+						}else{
+							//msg += " Please visit <a href='https://www.blockchain.com/" + currencyId.toLowerCase() + "/tx/" + data.txid + "' target='_blank'>Blockchain web</a> for detailed information.";
+							msg += " Please visit <a href='https://tbtc.bitaps.com/" + data.txid + "' target='_blank'>Bitaps web</a> for detailed information.";
+						}
+					}
+					msgBox(msg);
+					getMaxSpentableMoney();
+				}else if (data.resultText.contains("FileNotFoundException")){
+					msgBox("Failed to broadcast transaction to blockchain, might be caused by inappropriate transaction fee, or some input transactions are not confirmed, please make sure all your previous transactions are confirmed then try again, if the situation remains, please adjust the transaction fee then try again.");
+				}else{
+					msgBox("Failed to broadcast transaction to blockchain:<br>" + data.resultText);
+				}
+			}
+		}, true, "POST");	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+		
+
+	}
+</script>
+

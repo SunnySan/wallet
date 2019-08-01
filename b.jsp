@@ -45,6 +45,12 @@ String	sResponse	= "";
 //String	myURL		= request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath()+"/";	//目前程式所處的URL路徑，不含檔名
 String	myURL		= "http://ip-172-31-31-149.ap-southeast-1.compute.internal:8080/wallet/";	//目前程式所處的URL路徑，不含檔名
 
+if (request.getServerPort()==8088){	//Sunny notebook
+	myURL = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath()+"/";	//目前程式所處的URL路徑，不含檔名
+}else{
+	myURL = "http://ip-172-31-31-149.ap-southeast-1.compute.internal:8080/wallet/";	//目前程式所處的URL路徑，不含檔名
+}
+
 OutputStream o		= null;
 /*********************開始做事吧*********************/
 
