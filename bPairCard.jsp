@@ -96,6 +96,7 @@ sResultCode = ht.get("ResultCode").toString();
 sResultText = ht.get("ResultText").toString();
 
 if (sResultCode.equals(gcResultCodeSuccess)){
+	obj.put("apdu", "AABBDD3000000101010100");
 	writeLog("debug", "BIP card pairing successfully, Card_Id= " + cardId + ", App_Id= " + s[0][1]);
 }else{	//有問題
 	writeLog("debug", "BIP card pairing failed, sResultCode= " + sResultCode + ", sResultText= " + sResultText);

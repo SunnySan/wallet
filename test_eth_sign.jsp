@@ -95,6 +95,7 @@ String sSignatureData = "3045022100BE44E2BA2F6095030FBB4D5E459C6CA93C74860B018D1
 ECDSASignature sig = decodeFromDER(hex2Byte(sSignatureData));
 sig = sig.toCanonicalised();
 BigInteger publicKey = Numeric.toBigInt(hex2Byte(senderPublicKey));
+//BigInteger publicKey = new BigInteger(senderPublicKey, 16);
 out.println("<p>publicKey=" + publicKey + "<p>");
         // Now we have to work backwards to figure out the recId needed to recover the signature.
         int recId = -1;
@@ -177,6 +178,8 @@ out.println("<p>signed transactionHash=" + transactionHash);
                 }
                 // OpenSSL deviates from the DER spec by interpreting these values as unsigned, though they should not be
                 // Thus, we always use the positive versions. See: http://r6.ca/blog/20111119T211504Z.html
+                writeLog("debug", "r.getPositiveValue()=" + r.getPositiveValue());
+                writeLog("debug", "s.getPositiveValue()=" + s.getPositiveValue());
                 return new ECDSASignature(r.getPositiveValue(), s.getPositiveValue());
             } catch (IOException e) {
                 return null;

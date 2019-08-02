@@ -38,7 +38,7 @@ response.setContentType("text/html;charset=utf-8");
 
 out.clear();	//注意，一定要有out.clear();，要不然client端無法解析XML，會認為XML格式有問題
 
-//String	sResponse	= "AABBDDA0000001010100";
+//String	sResponse	= "AABBDDA000000101010100";
 String	sResponse	= "";
 
 //Sunny: 注意，第一行是一般用的，第二行是 cms.gslssd.com 的 docker 用的
@@ -197,7 +197,7 @@ if (bOK && notEmpty(sResponse)){	//有取得JSP的回應
 	sResultText = (String) jsonObjectBody.get("resultText");
 	sApdu = (String) jsonObjectBody.get("apdu");
 	if (sResultCode.equals(gcResultCodeSuccess)){
-		if (beEmpty(sApdu)) sResponse = "AABBDDA0000001010100";
+		if (beEmpty(sApdu)) sResponse = "AABBDDA000000101010100";
 		else sResponse = sApdu;
 	}else{
 		sResponse = "AABBDDA20000010101" + MakesUpZero(Integer.toHexString(string2Hex(sResultText, "UTF8").length()/2+1), 2) + "04" + string2Hex(sResultText, "UTF8");
