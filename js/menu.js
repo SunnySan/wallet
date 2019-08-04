@@ -33,8 +33,13 @@ function generateMenu(){
 	if (beEmpty(thisPageName)) thisPageName = "index.html";
 	s = "";
 	s += "<li" + (thisPageName=="CheckBalance.html"?" class='active'":"") + "><a href='CheckBalance.html'><i class='fa fa-balance-scale'></i> Check Balance</a></li>";
+	
+	/*	由於不同幣種的 SendMoney可能不同，所以用戶一律從CheckBalance頁面選擇SendMoney或ReceiveMoney
 	s += "<li" + (thisPageName=="ReceiveMoney.html"?" class='active'":"") + "><a href='ReceiveMoney.html'><i class='fa fa-download'></i> Receive Money</a></li>";
 	s += "<li" + (thisPageName=="SendMoney.html"?" class='active'":"") + "><a href='SendMoney.html'><i class='fa fa-upload'></i> Send Money</a></li>";
+	*/
+	
+	
 	//s += "<li" + (thisPageName=="TransactionHistory.html"?" class='active'":"") + "><a href='TransactionHistory.html'><i class='fa fa-table'></i> Transaction History</a></li>";
 	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-columns'></i> My Wallet</a></li>";
 	s += "<li" + (thisPageName=="SIMActivities.html"?" class='active'":"") + "><a href='SIMActivities.html'><i class='fa fa-mobile-phone'></i> Cold Wallet SIM Activities</a></li>";

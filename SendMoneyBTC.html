@@ -147,7 +147,7 @@
 								-->
 								<!-- text input -->
 								<div class="form-group">
-									<label>Amount</label>
+									<label>Amount (BTC)</label>
 									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent">
 								</div>
 								<div class="row">
@@ -635,7 +635,6 @@
 		sData += "&txHash=" + txHash;
 		sData += "&address=" + currencyAddress;
 		sData += "&publicKey=" + currencyPublicKey;
-		sData += "&currencyId=" + currencyId;
 
 		//getDataFromServer("testGetHashToBeSigned.jsp", sData, "json", function(data){
 		getDataFromServer("aCreateNewTransaction.jsp", sData, "json", function(data){

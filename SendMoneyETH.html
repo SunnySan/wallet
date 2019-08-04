@@ -24,7 +24,7 @@
 	<!-- Select2 -->
 	<link rel="stylesheet" href="bower_components/select2/dist/css/select2.min.css">	
 	<!-- daterange picker -->
-	<link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css">
+	<!--<link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css">-->
 
 	<link rel="stylesheet" href="css/jquery-ui.min.css" type="text/css" /><!-- Jquery UI -->
 	
@@ -147,14 +147,19 @@
 								-->
 								<!-- text input -->
 								<div class="form-group">
-									<label>Amount</label>
+									<label>Amount (ETH)</label>
 									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent">
 								</div>
 								<div class="row">
 									<!-- text input -->
 									<div class="form-group col-lg-6 col-xs-12">
-										<label>Gas Limit</label>
-										<input type="text" id="transactionFee" class="form-control" placeholder="" disabled>
+										<label>Gas Price (Wei)</label>
+										<input type="text" id="gasPrice" class="form-control" placeholder="" disabled>
+									</div>
+									<!-- text input -->
+									<div class="form-group col-lg-6 col-xs-12">
+										<label>Gas Limit (Wei)</label>
+										<input type="text" id="gasLimit" class="form-control" placeholder="" disabled>
 									</div>
 								</div>
 								<div class="slider"></div>
@@ -185,28 +190,8 @@
 							<form role="form">
 								<!-- text input -->
 								<div class="form-group">
-									<label>Signature 1</label>
+									<label>Signature</label>
 									<input type="text" id="sig1" class="form-control" placeholder="" value="">
-								</div>
-								<!-- text input -->
-								<div class="form-group">
-									<label>Signature 2</label>
-									<input type="text" id="sig2" class="form-control" placeholder="" value="">
-								</div>
-								<!-- text input -->
-								<div class="form-group">
-									<label>Signature 3</label>
-									<input type="text" id="sig3" class="form-control" placeholder="" value="">
-								</div>
-								<!-- text input -->
-								<div class="form-group">
-									<label>Signature 4</label>
-									<input type="text" id="sig4" class="form-control" placeholder="" value="">
-								</div>
-								<!-- text input -->
-								<div class="form-group">
-									<label>Signature 5</label>
-									<input type="text" id="sig5" class="form-control" placeholder="" value="">
 								</div>
 							</form>
 						</div><!-- /.box-body -->
@@ -276,14 +261,6 @@
 <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 <!--<script type="text/javascript" src="js/moment.min.js"></script>-->
 <!--<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>-->
-<script type="text/javascript" src="js/crypto-min.js"></script>
-<script type="text/javascript" src="js/crypto-sha256.js"></script>
-<script type="text/javascript" src="js/crypto-sha256-hmac.js"></script>
-<script type="text/javascript" src="js/sha512.js"></script>
-<script type="text/javascript" src="js/ripemd160.js"></script>
-<script type="text/javascript" src="js/aes.js"></script>
-<script type="text/javascript" src="js/jsbn.js"></script>
-<!--<script type="text/javascript" src="js/ellipticcurve.js"></script>-->
 
 <!-- SlimScroll -->
 <script src="bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
@@ -298,9 +275,6 @@
 <script type="text/javascript" src="js/jquery.cookie.js"></script><!--處理cookie，參考網頁：https://github.com/carhartl/jquery-cookie -->
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/menu.js"></script>
-
-<script type="text/javascript" src="js/coin.js"></script>
-<!--<script type="text/javascript" src="js/coinbin.js"></script>-->
 
 <!-- Select2 -->
 <script src="bower_components/select2/dist/js/select2.full.min.js"></script>
@@ -319,8 +293,8 @@
 	var currencyAddress = "";
 	var unspentTransaction = null;
 	var totalUnspent = 0.0;
-	var minFee = 0.0;	//1 input + 1 output 約 225 bytes
-	var GasLimit = 2520.0;	//Gas Limit, 需除以 100000000
+	var GasPrice = 1000000000;	//Gas Price (Wei)
+	var GasLimit = 400000;	//Gas Limit (Wei)
 	var txHash = "";	//Transaction hex
 	var hasCamera = false;
 	var myCameras = null;
@@ -329,14 +303,15 @@
 		checkAppCardWalletAndCurrency();
 		
 		$('.slider').slider({
-			max: 252000,
-			min: 2520,
-			step: 2500,
-			value: GasLimit,
-			slide: function( event, ui ) {$('#transactionFee').val((parseFloat(ui.value)/100000000).toFixed(8).toString())},
-			change: function( event, ui ) {$('#transactionFee').val((parseFloat(ui.value)/100000000).toFixed(8).toString())}
+			max: 3000000000,
+			min: 100000000,
+			step: 100000000,
+			value: GasPrice,
+			slide: function( event, ui ) {$('#gasPrice').val(ui.value)},
+			change: function( event, ui ) {$('#gasPrice').val(ui.value)}
 		});
-		$('#transactionFee').val((GasLimit/100000000).toFixed(8).toString());
+		$('#gasPrice').val(GasPrice);
+		$('#gasLimit').val(GasLimit);
 	})
 
 	let scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
@@ -399,14 +374,16 @@
 		var myApiKey = "3WPHYZR4JBK7C37Z5UEE821SJR3KRSYSP1";
 		var sUrl = (currencyId=="ETH"?"api":"api-ropsten");
 		//https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken
-		sUrl = "https://" + sUrl + ".etherscan.io/api?module=account&action=balance&address=" + currencyAddress + "&tag=latest&apikey=" + myApiKey;
+		sUrl = "https://" + sUrl + ".etherscan.io/api?module=account&action=balance&address=" + (currencyAddress.startsWith("0x")?currencyAddress:"0x"+currencyAddress) + "&tag=latest&apikey=" + myApiKey;
 		
 		$.getJSON( sUrl, function(data) {
 			if (beEmpty(data.status) || data.status!="1"){
 				msgBox("Fail to get unspent data for " + currencyId + ": " + currencyAddress);
 				return;
 			}
-			$('#availableMoney').text(", maximum available money = " + (parseFloat(data.result)-GasLimit*10000000000)/1000000000000000000).toFixed(8).toString();
+			totalUnspent = (parseFloat(data.result)/1000000000000000000).toFixed(8);
+			//$('#availableMoney').text(", maximum available money = " + ((parseFloat(data.result)-GasPrice*GasLimit)/1000000000000000000).toFixed(8).toString() + " ETH");
+			$('#availableMoney').text(", maximum available money = " + ((parseFloat(data.result))/1000000000000000000).toFixed(8).toString() + " ETH");
 		})
 		.fail(function(d) {
 			msgBox("Failed to get unspent money");
@@ -417,188 +394,35 @@
 	
 	function doSend(){
 		$('#sig1').val('');
-		$('#sig2').val('');
-		$('#sig3').val('');
-		$('#sig4').val('');
-		$('#sig5').val('');
-		$('#estimatedFee').val('');
 		$('#signedTransactionHex').val('');
 		
 		if (!checkUnspentMoney()) return;
-		generateRawTransactionData();
+		getHashToBeSigned();
 	}	//function doSend(){
 	
 	function checkUnspentMoney(){
+		GasPrice = parseFloat($('#gasPrice').val());
 		var amountToBeSent = parseFloat($('#amountToBeSent').val());
 		if (beEmpty($('#beneficiaryAddress').val())){
 			msgBox("Please input beneficiary address");
 			return false;
 		}
-		if (beEmpty($('#amountToBeSent').val()) || amountToBeSent>(totalUnspent-minFee)){
-			msgBox("You are trying to send " + amountToBeSent.toString() + ", but have a balance of " + (totalUnspent-minFee).toString());
+		if (beEmpty($('#amountToBeSent').val())){
+			msgBox("Please input amount");
+			return false;
+		}
+		if (amountToBeSent+(GasPrice*GasLimit)/1000000000000000000>totalUnspent){
+			msgBox("You are trying to send " + amountToBeSent.toString() + ", but have a balance of " + (totalUnspent-(GasPrice*GasLimit)/1000000000000000000).toString());
 			return false;
 		}
 		return true;
 	}	//function checkUnspentMoney(){
 	
-	function generateRawTransactionData(){
-		var amountToBeSent = parseFloat($('#amountToBeSent').val());
-		var tx = coinjs.transaction();
-		var estimatedTxSize = 10; // <4:version><1:txInCount><1:txOutCount><4:nLockTime>
-		var hasError = false;
-		var addedMoney = 0.00000000;
-		var ad = null;
-		var totalFee = 0.00000000;
-		var totalOutput = 0.00000000;
-		var autoCalculateFee = false;
-		var usedInputCount = 0;
-
-		if (beEmpty($('#transactionFee').val()) || $('#transactionFee').val()=="0") autoCalculateFee = true;
-		else GasLimit = $('#transactionFee').val();
-
-		$.each(unspentTransaction.txs, function(i,o){
-			if (autoCalculateFee){
-				GasLimit = (i+1)*5;
-				$('#transactionFee').val(GasLimit.toString());
-				$( '.slider' ).slider( "value", GasLimit );
-			}
-			
-			if(!(o.txid).match(/^[a-f0-9]+$/i)){
-				hasError = true;
-			} else if((!(o.script_hex).match(/^[a-f0-9]+$/i)) && $(".txIdScript",o).val()!=""){
-				hasError = true;
-			} else if (!(o.output_no).toString().match(/^[0-9]+$/i)){
-				hasError = true;
-			}
-			//if (isDebugMode()) console.log("0 estimatedTxSize= " + estimatedTxSize.toString());
-			if(!hasError){
-				var seq = null;
-
-				var currentScript = o.script_hex;
-				if (currentScript.match(/^76a914[0-9a-f]{40}88ac$/)) {
-					estimatedTxSize += 147;
-					//if (isDebugMode()) console.log("1 estimatedTxSize= " + estimatedTxSize.toString());
-				} else if (currentScript.match(/^5[1-9a-f](?:210[23][0-9a-f]{64}){1,15}5[1-9a-f]ae$/)) {
-					// <74:persig <1:push><72:sig><1:sighash> ><34:perpubkey <1:push><33:pubkey> > <32:prevhash><4:index><4:nSequence><1:m><1:n><1:OP>
-					var scriptSigSize = (parseInt(currentScript.slice(1,2),16) * 74) + (parseInt(currentScript.slice(-3,-2),16) * 34) + 43;
-					// varint 2 bytes if scriptSig is > 252
-					estimatedTxSize += scriptSigSize + (scriptSigSize > 252 ? 2 : 1);
-					//if (isDebugMode()) console.log("2 estimatedTxSize= " + estimatedTxSize.toString());
-				} else {
-					// underestimating won't hurt. Just showing a warning window anyways.
-					estimatedTxSize += 147;
-					//if (isDebugMode()) console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
-				}
-				usedInputCount ++;
-				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
-				addedMoney += parseFloat(o.value);
-				if (isDebugMode()) console.log(i.toString() + ", o.txid= " + o.txid + ", unspent money= " + o.value + ", total added money=" + addedMoney);
-				totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*GasLimit/100000000;
-				//如果你的輸出(outputs)小於0.01BTC(包括你錢包內部的資金變動)的話，你必須要支付0.0001的手續費，即使是你自己轉給你自己。
-				//參考 https://kknews.cc/finance/y65myrn.html
-				if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
-				//if (isDebugMode()) console.log(i.toString() + "totalFee=" + totalFee);
-				//if (isDebugMode()) console.log("addedMoney=" + addedMoney.toString());
-				//if (isDebugMode()) console.log("amountToBeSent=" + amountToBeSent.toString());
-				//if (isDebugMode()) console.log("totalFee=" + totalFee.toString());
-
-				if (addedMoney==(amountToBeSent+totalFee)){
-					//if (isDebugMode()) console.log("false 0");
-					return false; // 等於break
-				}else if (addedMoney>(amountToBeSent+totalFee)){
-					
-					ad = coinjs.addressDecode(currencyAddress);
-					// P2SH output is 32, P2PKH is 34
-					estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
-					totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*GasLimit/100000000;
-					if (currencyId=="BTC" && (amountToBeSent<0.01 || addedMoney-amountToBeSent-totalFee<0.01) && totalFee<0.0001) totalFee = 0.0001;
-					//if (isDebugMode()) console.log(i.toString() + " else totalFee=" + totalFee);
-					if (addedMoney==(amountToBeSent+totalFee)){
-						//if (isDebugMode()) console.log("false 1");
-						return false; // 等於break
-					}else if (addedMoney>(amountToBeSent+totalFee)){
-						tx.addoutput(currencyAddress, (addedMoney-amountToBeSent-totalFee).toString());
-						totalOutput += addedMoney-amountToBeSent-totalFee;
-						//if (isDebugMode()) console.log(i.toString() + ", estimatedTxSize=" + estimatedTxSize.toString()+", add out amount" +(addedMoney-amountToBeSent-totalFee).toString());
-						//if (isDebugMode()) console.log("false 2");
-						return false; // 等於break
-					}
-				}
-			} else {
-				msgBox("Parsing error with the unspent data");
-				hasError = true;
-				return false;
-			}
-		});
-
-		//Sunny: 以下為了POC階段卡片只能sign一個hash
-		if (usedInputCount>1){
-			msgBox("There are " + usedInputCount + " inputs should be signed, currently we can only sign one input hash, please enter a smaller amount and try again.");
-			return;
-		}
-		//Sunny: 以上為了POC階段卡片只能sign一個hash
-
-		if (!hasError){
-			var a = ($('#beneficiaryAddress').val());
-			var ad = coinjs.addressDecode(a);
-			//if (isDebugMode()) console.log(ad);
-			if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
-				// P2SH output is 32, P2PKH is 34
-				estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
-				//if (isDebugMode()) console.log("5 estimatedTxSize= " + estimatedTxSize.toString());
-				tx.addoutput(a, parseFloat($('#amountToBeSent').val()));
-				totalOutput += parseFloat($('#amountToBeSent').val());
-			} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
-				// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
-				estimatedTxSize += 78
-				tx.addstealth(ad, $('#amountToBeSent').val());
-				//if (isDebugMode()) console.log("6 estimatedTxSize= " + estimatedTxSize.toString());
-			} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
-				estimatedTxSize += (a.length / 2) + 1 + 8
-				tx.adddata(a);
-				//if (isDebugMode()) console.log("7 estimatedTxSize= " + estimatedTxSize.toString());
-			} else { // neither address nor data
-				hasError = true;
-				msgBox("The address you entered is invalid");
-				return;
-			}
-		}
-
-		if (!hasError){
-			totalFee = (addedMoney - totalOutput).toFixed(8);
-			$('#estimatedFee').val(totalFee);
-			if (isDebugMode()) console.log("total estimatedTxSize= " + estimatedTxSize.toString() + ", totalFee=" + totalFee.toString());
-			if (isDebugMode()) console.log(tx.serialize());
-			getHashToBeSigned(tx.serialize());
-		}
-
-	}	//function generateRawTransactionData(){
-	
-	function getBeneficiaryOutputDataSize(){
-		var estimatedTxSize = 0;
-		var a = ($('#beneficiaryAddress').val());
-		var ad = coinjs.addressDecode(a);
-		//if (isDebugMode()) console.log(ad);
-		if(((a!="") && (ad.version == coinjs.pub || ad.version == coinjs.pubtest || ad.version == coinjs.multisig || ad.type=="bech32")) && $('#amountToBeSent').val()!=""){ // address
-			// P2SH output is 32, P2PKH is 34
-			estimatedTxSize += (ad.version == coinjs.pub || ad.version == coinjs.pubtest ? 34 : 32)
-		} else if (((a!="") && ad.version === 42) && $('#amountToBeSent').val()!=""){ // stealth address
-			// 1 P2PKH and 1 OP_RETURN with 36 bytes, OP byte, and 8 byte value
-			estimatedTxSize += 78
-		} else if (((($("#opReturn").is(":checked")) && a.match(/^[a-f0-9]+$/ig)) && a.length<160) && (a.length%2)==0) { // data
-			estimatedTxSize += (a.length / 2) + 1 + 8
-		} else { // neither address nor data
-			msgBox("The address you entered is invalid");
-		}
-		return estimatedTxSize;
-	}
-	
-	function getHashToBeSigned(unsignedHsh){
+	function getHashToBeSigned(){
 		var sData = "";
 		var s = "";
 		var tmp = "";
 
-		txHash = unsignedHsh;
 		var appId = getLocalValue("SCWSysAppId");
 		var cardId = getLocalValue("SCWSysCardId");
 		var walletId = getLocalValue("SCWSysWalletId");
@@ -607,26 +431,22 @@
 		sData += "&walletId=" + walletId;
 		sData += "&walletName=" + walletName;
 		sData += "&currencyId=" + currencyId;
-		sData += "&txHash=" + txHash;
 		sData += "&toAddress=" + $('#beneficiaryAddress').val();
 		sData += "&amount=" + $('#amountToBeSent').val();
-		sData += "&transactionFee=" + $('#estimatedFee').val();
-		sData += "&txHash=" + txHash;
+		sData += "&gasPrice=" + $('#gasPrice').val();
+		sData += "&gasLimit=" + GasLimit;
 		sData += "&address=" + currencyAddress;
 		sData += "&publicKey=" + currencyPublicKey;
-		sData += "&currencyId=" + currencyId;
-
+		//console.log(sData);
 		//getDataFromServer("testGetHashToBeSigned.jsp", sData, "json", function(data){
-		getDataFromServer("aCreateNewTransaction.jsp", sData, "json", function(data){
+		getDataFromServer("aCreateNewTransactionETH.jsp", sData, "json", function(data){
 			if (!data.resultCode || !data.resultText){
 				msgBox("Unable to get hash data for signing.");
 				return;
 			}else{
 				if (data.resultCode=="00000"){
 					s = "";
-					$.each( data.records, function(i, r) {
-						s += "<p>" + r.hash.toUpperCase();
-					});	//$.each( data.orders, function(i, r) {
+					s += "<p>" + data.records.toUpperCase();
 					$('#hashForSigning').html(s);
 					msgBox("Please launch STK on your phone, click [Sync system] to resume this job!");
 				}else{

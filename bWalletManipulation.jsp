@@ -168,7 +168,15 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 			address = getBitcoinAddressFromPublicKey(currencyId, publicyKey);
 		}
 		if (currencyId.equals("ETH") || currencyId.equals("ETHTEST")){
-			address = Keys.toChecksumAddress(Keys.getAddress(publicyKey));
+			//將 SIM 卡算出的 compressed public key 解壓縮，得到未被 compress 的 public key
+			org.bitcoinj.core.ECKey pubKey = org.bitcoinj.core.ECKey.fromPublicOnly(hex2Byte(publicyKey));
+			org.bitcoinj.core.ECKey decompressedPubKey = pubKey.decompress();
+			byte[] baDecompressedPubKey = decompressedPubKey.getPubKey();
+			writeLog("debug", "baDecompressedPubKey= " + byte2Hex(baDecompressedPubKey));
+			
+			//從未被 compress 的 public key 算出以太鏈的 address
+			byte[] baAddress = org.ethereum.crypto.ECKey.computeAddress(baDecompressedPubKey);
+			address = byte2Hex(baAddress);
 		}
 		//writeLog("debug", "path= " + path);
 		//writeLog("debug", "currencyType= " + currencyType);

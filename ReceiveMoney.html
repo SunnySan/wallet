@@ -193,6 +193,9 @@
 			return;
 		}else{
 			$('.currencyName').text(currencyName);
+			if (currencyId=="ETH" || currencyId=="ETHTEST"){
+				if (!currencyAddress.startsWith("0x")) currencyAddress = "0x" + currencyAddress;
+			}
 			$('.currencyAddress').text(currencyAddress);
 			generateQrCode();
 		}
@@ -205,6 +208,9 @@
 		var leadingText = "";
 		if (currencyId=="BTC" || currencyId=="BTCTEST"){
 			leadingText = "bitcoin:";
+		}
+		if (currencyId=="ETH" || currencyId=="ETHTEST"){
+			if (!currencyAddress.startsWith("0x")) leadingText = "0x";
 		}
 		$("#addressQrcode").html("");
 		var qrcode = new QRCode("addressQrcode");

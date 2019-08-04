@@ -8,6 +8,7 @@
 <%@page import="org.json.simple.JSONArray" %>
 <%@page import="org.apache.commons.io.IOUtils" %>
 <%@page import="java.util.*" %>
+<%@page import="java.nio.charset.StandardCharsets" %>
 
 <%@page import="org.web3j.protocol.Web3j" %>
 <%@page import="org.web3j.protocol.http.HttpService" %>
@@ -36,7 +37,6 @@
 <%@page import="org.bouncycastle.math.ec.custom.sec.SecP256K1Curve" %>
 
 
-
 <%@ page import="java.math.BigInteger"%>
 
 <%@include file="00_constants.jsp"%>
@@ -44,14 +44,15 @@
 
 <%
 /***************輸入範例********************************************************
-所有資料
-http://127.0.0.1:8080/CHT/ajaxGetPaymentOrderList.jsp
-
-單一資料
-http://127.0.0.1:8080/CHT/ajaxGetPaymentOrderList.jsp?Payment_Order_ID=TX15011901DA55595D5898AD
+https://cms.gslssd.com/wallet/bPair.jsp?cardid=1234567890123456&paircode=520333
 *******************************************************************************/
 
 /***************輸出範例********************************************************
+成功
+DDDDDDFD
+
+失敗
+DDDDDD0000596a6176612e73716c2e4261746368557064617465457863657074696f6e3a2044617461207472756e636174696f6e3a204461746120746f6f206c6f6e6720666f7220636f6c756d6e202749434349442720617420726f772031
 *******************************************************************************/
 %>
 
@@ -66,28 +67,130 @@ out.clear();	//注意，一定要有out.clear();，要不然client端無法解�
 
 JSONObject	obj=new JSONObject();
 
-/*********************開始做事吧*********************/
-String ethApiEndPoint = "https://ropsten.infura.io/v3/1a2cc5dffd8b46699947c7a73d152380";	//ropsten testnet
-String senderAddress = "0xb2ab932d6983b8637b274ad66256fedcbf0e32a7";
-String senderPublicKey = "0285AB5095F0F70E0C9118B0DE9764AE96F8773A29DB54235A989E4C06A2165F83";
-String toAddress = "65D28726cFA311F80e2C02608185C9900861aad7";
+String	sResponse	= "";
 
-long lGasPrice = 1000000000;
+/*********************開始做事吧*********************/
+
+String cardId		= nullToString(request.getParameter("cardId"), "");
+String signature	= nullToString(request.getParameter("data"), "");
+
+if (beEmpty(cardId) || beEmpty(signature)){
+	writeLog("debug", "BIP push signed ETH/ETHTEST transaction parameter not found for Card_Id= " + cardId + ", signature=" + signature);
+	obj.put("resultCode", gcResultCodeParametersNotEnough);
+	obj.put("resultText", gcResultTextParametersNotEnough);
+	out.print(obj);
+	out.flush();
+	return;
+}else{
+	writeLog("debug", "BIP push signed ETH/ETHTEST transaction for Card_Id= " + cardId + ", signature=" + signature);
+}
+
+Hashtable	ht					= new Hashtable();
+String		sResultCode			= gcResultCodeSuccess;
+String		sResultText			= gcResultTextSuccess;
+String		sa[][]				= null;
+String		sSQL				= "";
+List<String> sSQLList			= new ArrayList<String>();
+String		sDate				= getDateTimeNow(gcDateFormatSlashYMDTime);
+String		sUser				= "System";
+
+String		ss					= "";
+int			i					= 0;
+int			j					= 0;
+int			k					= 0;
+int			l					= 0;
+
+String	currencyId				= "";
+String	unsignedHash			= "";
+String	jobRowId				= "";
+String	transactionRowId		= "";
+String	address					= "";
+String	publicKey				= "";
+java.lang.Boolean	bOK			= false;
+String	txid					= "";
+String	valueToSend				= "";
+
+String ethApiEndPoint = "";
+String senderAddress = "";
+String senderPublicKey = "";
+String toAddress = "";
+String sAmount = "";
+String sGasPrice = "";
+String sMessageHash = "";
+
+
+sSQL = "SELECT A.id, B.id, B.Currency_Id, B.To_Address, B.Amount, B.Transaction_Fee, B.Hash_To_Be_Signed, C.Address, C.Publicy_Key";
+sSQL += " FROM cwallet_bip_job_queue A, cwallet_transaction B, cwallet_wallet_currency C";
+sSQL += " WHERE A.Card_Id='" + cardId + "'";
+sSQL += " AND A.CMD='" + "50" + "'";
+sSQL += " AND A.Status='" + "Sync" + "'";
+sSQL += " AND A.Transaction_Id=B.Transaction_Id";
+sSQL += " AND C.Card_Id='" + cardId + "'";
+sSQL += " AND C.Wallet_Id=B.Wallet_Id";
+sSQL += " AND C.Currency_Id=B.Currency_Id";
+sSQL += " ORDER BY A.id desc";
+sSQL += " LIMIT 1";
+
+ht = getDBData(sSQL, gcDataSourceNameCMSIOT);
+
+sResultCode = ht.get("ResultCode").toString();
+sResultText = ht.get("ResultText").toString();
+if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
+	sa = (String[][])ht.get("Data");
+	jobRowId = sa[0][0];
+	transactionRowId = sa[0][1];
+	currencyId = sa[0][2];
+	toAddress = sa[0][3];
+	sAmount = sa[0][4];
+	sGasPrice = sa[0][5];
+	sMessageHash = sa[0][6];
+	senderAddress = sa[0][7];
+	senderPublicKey = sa[0][8];
+}else{
+	writeLog("error", "BIP push signed ETH/ETHTEST transaction failed, sResultCode= " + sResultCode + ", sResultText= " + sResultText);
+	obj.put("resultCode", sResultCode);
+	obj.put("resultText", sResultText);
+	out.print(obj);
+	out.flush();
+	return;
+}	//if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
+
+float f = Float.parseFloat(sGasPrice);
+f = f * 1000000000;
+long lGasPrice = (long)f;
+writeLog("debug", "Gas Price (GWei)= " + sGasPrice);
+writeLog("debug", "Gas Price (Wei)= " + String.valueOf(lGasPrice));
+
 long lGasLimit = 400000;
-long lAmount = 1;
+writeLog("debug", "Gas Limit (Wei)= " + String.valueOf(lGasLimit));
+
+writeLog("debug", "Amount (ETH)= " + sAmount);
+double d = Double.parseDouble(sAmount);
+d = d * Double.parseDouble("1000000000000000000");
+long lAmount = (long)d;
+writeLog("debug", "Amount (Wei)= " + String.valueOf(lAmount));
 
 //將 SIM 卡算出的 compressed public key 解壓縮，得到未被 compress 的 public key
 org.bitcoinj.core.ECKey pubKey = org.bitcoinj.core.ECKey.fromPublicOnly(hex2Byte(senderPublicKey));
 org.bitcoinj.core.ECKey decompressedPubKey = pubKey.decompress();
 byte[] baDecompressedPubKey = decompressedPubKey.getPubKey();
-writeLog("debug", "baDecompressedPubKey= " + byte2Hex(baDecompressedPubKey));
+writeLog("debug", "senderPublicKey= " + senderPublicKey);
+writeLog("debug", "Decompressed senderPublicKey= " + byte2Hex(baDecompressedPubKey));
 
 //從未被 compress 的 public key 算出以太鏈的 address
 byte[] baAddress = org.ethereum.crypto.ECKey.computeAddress(baDecompressedPubKey);
 senderAddress = byte2Hex(baAddress);
-out.println("<p>senderAddress=" + senderAddress);
+writeLog("debug", "senderAddress= " + senderAddress);
 
-
+//注意：ETH mainnet chainId = 1, ropsten testnet chainId = 3
+Integer chainId = 3;
+if (currencyId.equals("ETH")){
+	ethApiEndPoint = "https://mainnet.infura.io/v3/1a2cc5dffd8b46699947c7a73d152380";	//mainnet testnet
+	chainId = 1;
+}else{
+	ethApiEndPoint = "https://ropsten.infura.io/v3/1a2cc5dffd8b46699947c7a73d152380";	//ropsten testnet
+	chainId = 3;
+}
 
 //取得 Web3j 服務
 Web3j web3j = Web3j.build(new HttpService(ethApiEndPoint));
@@ -96,33 +199,18 @@ Web3j web3j = Web3j.build(new HttpService(ethApiEndPoint));
 EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
              (senderAddress.startsWith("0x")?senderAddress:"0x"+senderAddress), DefaultBlockParameterName.LATEST).sendAsync().get();
 BigInteger nonce = ethGetTransactionCount.getTransactionCount();
-out.println("<p>nonce=" + nonce);
-
-//注意：ETH mainnet chainId = 1, ropsten testnet chainId = 3
-Integer chainId = 3;
-
-//建立未被簽名的 Transaction 物件
-Transaction tx = new Transaction(
-        ByteUtil.bigIntegerToBytes(nonce),
-        ByteUtil.longToBytesNoLeadZeroes(lGasPrice),
-        ByteUtil.longToBytesNoLeadZeroes(lGasLimit),
-        hex2Byte(toAddress),
-        ByteUtil.bigIntegerToBytes(BigInteger.valueOf(lAmount)),  // wei
-        null,
-        chainId);
-byte[] messageHash = tx.getRawHash();	//須被簽名的 hash
-out.println("<p>messageHash=" + byte2Hex(messageHash));
+writeLog("debug", "nonce=" + nonce);
 
 //填入 SIM 卡送來的簽名
-String sSignatureData = "304602210081E16316E8366F71A1511C4472C85C02AB45DD3B19A478F01640DEB14850DCEC02210085C73A5220F47C3D59351B590E69E1F5417C73D3637348C2F949F7E725803BC4";
-out.println("<p>SIM signature=" + sSignatureData);
+String sSignatureData = signature;
+writeLog("debug", "SIM signature= " + sSignatureData);
 
 //將簽名做 Canonicalised
 org.bitcoinj.core.ECKey.ECDSASignature sig = org.bitcoinj.core.ECKey.ECDSASignature.decodeFromDER(hex2Byte(sSignatureData));
 sig = sig.toCanonicalised();
 sSignatureData = byte2Hex(sig.encodeToDER());
 
-out.println("<p>toCanonicalised signature=" + sSignatureData);
+writeLog("debug", "toCanonicalised signature= " + sSignatureData);
 
 //找出 signature 中的 r, s 值
 BigInteger br, bs;
@@ -130,21 +218,33 @@ ASN1InputStream decoder = null;
 try {
 	decoder = new ASN1InputStream(hex2Byte(sSignatureData));
 	DLSequence seq = (DLSequence) decoder.readObject();
-	if (seq == null)
-	throw new RuntimeException("Reached past end of ASN.1 stream.");
-	ASN1Integer r, s;
-	try {
-		r = (ASN1Integer) seq.getObjectAt(0);
-		s = (ASN1Integer) seq.getObjectAt(1);
-	} catch (ClassCastException e) {
-		throw new IllegalArgumentException(e);
+	if (seq == null){
+		writeLog("error", "sSignatureData is invalid, reached past end of ASN.1 stream.");
+		obj.put("resultCode", gcResultCodeUnknownError);
+		obj.put("resultText", "Invalid signature data");
+		out.print(obj);
+		out.flush();
+		return;
+	}else{
+		ASN1Integer r, s;
+		try {
+			r = (ASN1Integer) seq.getObjectAt(0);
+			s = (ASN1Integer) seq.getObjectAt(1);
+		} catch (ClassCastException e) {
+			throw new IllegalArgumentException(e);
+		}
+		// OpenSSL deviates from the DER spec by interpreting these values as unsigned, though they should not be
+		// Thus, we always use the positive versions. See: http://r6.ca/blog/20111119T211504Z.html
+		br = r.getPositiveValue();
+		bs = s.getPositiveValue();
 	}
-	// OpenSSL deviates from the DER spec by interpreting these values as unsigned, though they should not be
-	// Thus, we always use the positive versions. See: http://r6.ca/blog/20111119T211504Z.html
-	br = r.getPositiveValue();
-	bs = s.getPositiveValue();
 } catch (IOException e) {
-	throw new RuntimeException(e);
+	writeLog("error", "Exception while parsing signature data: " + e.toString());
+	obj.put("resultCode", gcResultCodeUnknownError);
+	obj.put("resultText", "Exception while parsing signature data.");
+	out.print(obj);
+	out.flush();
+	return;
 } finally {
 	if (decoder != null)
 	try { decoder.close(); } catch (IOException x) {}
@@ -153,9 +253,13 @@ try {
 //找出 v 值
 org.ethereum.crypto.ECKey.ECDSASignature ejSignature = org.ethereum.crypto.ECKey.ECDSASignature.decodeFromDER(sig.encodeToDER()); 
 // Now we have to work backwards to figure out the recId needed to recover the signature.
-int recId = getRecId(ejSignature, messageHash, baDecompressedPubKey, hex2Byte(senderPublicKey));
+int recId = getRecId(ejSignature, hex2Byte(sMessageHash), baDecompressedPubKey, hex2Byte(senderPublicKey));
 if (recId == -1) {
-	out.println("<p>Couldn't find correct public key from signature");
+	writeLog("error", "Couldn't find correct public key from signature.");
+	obj.put("resultCode", gcResultCodeUnknownError);
+	obj.put("resultText", "Couldn't find correct public key from signature.");
+	out.print(obj);
+	out.flush();
 	return;
 }
 int headerByte = recId + 27;
@@ -166,16 +270,16 @@ baR = br.toByteArray();
 baS = bs.toByteArray();
 byte v = (byte) headerByte;
 
-out.println("<p>r=" + byte2Hex(baR));
-out.println("<p>s=" + byte2Hex(baS));
+writeLog("debug", "r=" + byte2Hex(baR));
+writeLog("debug", "s=" + byte2Hex(baS));
 
 //用 r, s, v 建立已被簽名的 Transaction 物件
 Transaction tx2 = new Transaction(
         ByteUtil.bigIntegerToBytes(nonce),
         ByteUtil.longToBytesNoLeadZeroes(lGasPrice),
         ByteUtil.longToBytesNoLeadZeroes(lGasLimit),
-        hex2Byte(toAddress),
-        ByteUtil.bigIntegerToBytes(BigInteger.valueOf(lAmount)),  // 1 gwei
+        hex2Byte(toAddress.startsWith("0x") || toAddress.startsWith("0X")?toAddress.substring(2):toAddress),
+        ByteUtil.bigIntegerToBytes(BigInteger.valueOf(lAmount)),
         null,
         baR,
         baS,
@@ -183,18 +287,52 @@ Transaction tx2 = new Transaction(
         chainId);
 
 //tx2.getEncoded() 就是要送到以太鏈上的 raw transaction
-out.println("<p>Raw transaction getEncoded: 0x{}=" + byte2Hex(tx2.getEncoded()));
+valueToSend = byte2Hex(tx2.getEncoded());
+writeLog("debug", "Raw transaction getEncoded: 0x{}=" + valueToSend);
 
 //使用 Web3j 將 raw transaction 送出，並取得交易 id
 
 EthSendTransaction ethSendTransaction = web3j.ethSendRawTransaction("0x" + byte2Hex(tx2.getEncoded())).sendAsync().get();
 if (ethSendTransaction.hasError()) {
-	out.println("<p>Error while sending raw transaction to blockchain: " + ethSendTransaction.getError().getMessage());
+	writeLog("error", "Error while sending raw transaction to blockchain: " + ethSendTransaction.getError().getMessage());
 }else{
-	String transactionHash = ethSendTransaction.getTransactionHash();
-	out.println("<p>Raw transaction hash id=" + transactionHash);
+	txid = ethSendTransaction.getTransactionHash();
+	writeLog("debug", "Raw transaction hash id= " + txid);
+	bOK = true;
 }
 
+
+if (bOK){
+	sSQL = "UPDATE cwallet_bip_job_queue";
+	sSQL += " SET Status='Success'";
+	sSQL += " WHERE id=" + jobRowId;
+	sSQLList.add(sSQL);
+	sSQL = "UPDATE cwallet_transaction";
+	sSQL += " SET Status='Success'";
+	sSQL += " ,Blockchain_Tx_Id='" + txid + "'";
+	sSQL += " ,Signed_Hex='" + valueToSend + "'";
+	sSQL += " WHERE id=" + transactionRowId;
+	sSQLList.add(sSQL);
+	sResultCode	= gcResultCodeSuccess;
+	sResultText	= gcResultTextSuccess;
+}else{
+	sSQL = "UPDATE cwallet_bip_job_queue";
+	sSQL += " SET Status='Fail'";
+	sSQL += " WHERE id=" + jobRowId;
+	sSQLList.add(sSQL);
+	sSQL = "UPDATE cwallet_transaction";
+	sSQL += " SET Status='Fail'";
+	sSQL += " ,Signed_Hex='" + valueToSend + "'";
+	sSQL += " WHERE id=" + transactionRowId;
+	sSQLList.add(sSQL);
+}
+ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);
+
+obj.put("resultCode", sResultCode);
+obj.put("resultText", sResultText);
+writeLog("debug", "Response message= " + obj.toString());
+out.print(obj);
+out.flush();
 %>
 
 <%!

@@ -81,6 +81,7 @@ String	sJsp		= "";
 String	sData		= "";
 java.lang.Boolean	bOK = false;
 String	sApdu		= "";
+String	currencyId	= "";
 
 if (requestString.length()>18) content = requestString.substring(18);
 
@@ -115,9 +116,18 @@ if (cmd.equals("51")){	//Sign – Get Data
 }	//if (cmd.equals("51")){	//Sign – Get Data
 
 if (cmd.equals("52")){	//Sign - Signature
-	sJsp = "bPushSignedTransaction.jsp";
-	sData = "cardId=" + cardId;
-	sData += "&data=" + content;
+	currencyId = getCurrencyIdOfTransaction(cardId);
+	if (notEmpty(currencyId)){
+		if (currencyId.equals("BTC") || currencyId.equals("BTCTEST")){
+			sJsp = "bPushSignedTransaction.jsp";
+			sData = "cardId=" + cardId;
+			sData += "&data=" + content;
+		}else{
+			sJsp = "bPushSignedTransactionETH.jsp";
+			sData = "cardId=" + cardId;
+			sData += "&data=" + content;
+		}
+	}
 }	//if (cmd.equals("52")){	//Sign - Signature
 
 if (cmd.equals("40")){	//Create Wallet
@@ -213,4 +223,34 @@ o = response.getOutputStream();
 o.write(hex2Byte(sResponse));
 o.close();
 
+%>
+
+<%!
+	public String getCurrencyIdOfTransaction(String cardId){
+		Hashtable	ht					= new Hashtable();
+		String		sResultCode			= gcResultCodeSuccess;
+		String		sResultText			= gcResultTextSuccess;
+		String		s[][]				= null;
+		String		sSQL				= "";
+		String		currencyId			= "";
+
+		sSQL = "SELECT B.Currency_Id";
+		sSQL += " FROM cwallet_bip_job_queue A, cwallet_transaction B";
+		sSQL += " WHERE A.Card_Id='" + cardId + "'";
+		sSQL += " AND A.CMD='" + "50" + "'";
+		sSQL += " AND A.Status='" + "Sync" + "'";
+		sSQL += " AND A.Transaction_Id=B.Transaction_Id";
+		sSQL += " ORDER BY A.id desc";
+		sSQL += " LIMIT 1";
+		
+		ht = getDBData(sSQL, gcDataSourceNameCMSIOT);
+		
+		sResultCode = ht.get("ResultCode").toString();
+		sResultText = ht.get("ResultText").toString();
+		if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
+			s = (String[][])ht.get("Data");
+			currencyId = s[0][0];
+		}
+		return currencyId;
+	}
 %>
