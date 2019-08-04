@@ -73,6 +73,7 @@ String	sResponse	= "";
 
 String cardId		= nullToString(request.getParameter("cardId"), "");
 String signature	= nullToString(request.getParameter("data"), "");
+String src			= nullToString(request.getParameter("src"), "");
 
 if (beEmpty(cardId) || beEmpty(signature)){
 	writeLog("debug", "BIP push signed ETH/ETHTEST transaction parameter not found for Card_Id= " + cardId + ", signature=" + signature);
@@ -123,7 +124,11 @@ sSQL = "SELECT A.id, B.id, B.Currency_Id, B.To_Address, B.Amount, B.Transaction_
 sSQL += " FROM cwallet_bip_job_queue A, cwallet_transaction B, cwallet_wallet_currency C";
 sSQL += " WHERE A.Card_Id='" + cardId + "'";
 sSQL += " AND A.CMD='" + "50" + "'";
-sSQL += " AND A.Status='" + "Sync" + "'";
+if (notEmpty(src) && src.equals("web")){
+	sSQL += " AND (A.Status='" + "Init" + "' OR A.Status='" + "Sync" + "')";
+}else{
+	sSQL += " AND A.Status='" + "Sync" + "'";
+}
 sSQL += " AND A.Transaction_Id=B.Transaction_Id";
 sSQL += " AND C.Card_Id='" + cardId + "'";
 sSQL += " AND C.Wallet_Id=B.Wallet_Id";
