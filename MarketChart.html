@@ -48,7 +48,7 @@
 
 	<header class="main-header">
 		<!-- Logo -->
-		<a href="index2.html" class="logo">
+		<a href="#" class="logo">
 			<!-- mini logo for sidebar mini 50x50 pixels -->
 			<span class="logo-mini"><b id="sysLogoMini"></b></span>
 			<!-- logo for regular state and mobile devices -->
@@ -108,6 +108,12 @@
 			<div class="box" id="boxBTC">
 				<div class="box-header with-border">
 					<h3 class="box-title">Bitcoin</h3>
+					<div class="box-tools pull-right">
+						<button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"	title="Collapse">
+						<i class="fa fa-minus"></i></button>
+						<button type="button" class="btn btn-box-tool" data-widget="remove" data-toggle="tooltip" title="Remove">
+						<i class="fa fa-times"></i></button>
+					</div>
 				</div><!-- /.box-header -->
 				<div class="box-body">
 					<div id="chartBTC" style="height: 400px"></div>
@@ -117,6 +123,12 @@
 			<div class="box" id="boxETH">
 				<div class="box-header with-border">
 					<h3 class="box-title">Ethereum</h3>
+					<div class="box-tools pull-right">
+						<button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"	title="Collapse">
+						<i class="fa fa-minus"></i></button>
+						<button type="button" class="btn btn-box-tool" data-widget="remove" data-toggle="tooltip" title="Remove">
+						<i class="fa fa-times"></i></button>
+					</div>
 				</div><!-- /.box-header -->
 				<div class="box-body">
 					<div id="chartETH" style="height: 400px"></div>
@@ -228,7 +240,7 @@
                 zoomType: 'x'
             },
             title: {
-                text: 'USD to Bitcoin exchange rate (one year)'
+                text: 'USD to BTC exchange rate (one year)'
             },
             subtitle: {
                 text: document.ontouchstart === undefined ?
@@ -261,7 +273,7 @@
 					var rate = toCurrency(Math.round(this.y).toString());
 					var tooltip_html = "<table>";
 					this.points.forEach(function(entry){
-						tooltip_html += '<tr><td>'+ dateString +'</td></tr><tr><td style="text-align: right"><b>' + rate +'</b></td></tr>';
+						tooltip_html += '<tr><td>'+ dateString +'</td></tr><tr><td style="text-align: right"><b>USD&nbsp;' + rate +'</b></td></tr>';
 					});
 					tooltip_html += "</table>";
 					
@@ -300,7 +312,7 @@
 
             series: [{
                 type: 'area',
-                name: 'USD to Bitcoin',
+                name: 'USD to BTC',
                 data: data
             }]
         });
@@ -316,7 +328,7 @@
                 zoomType: 'x'
             },
             title: {
-                text: 'USD to Ethereum exchange rate (one year)'
+                text: 'USD to ETH exchange rate (one year)'
             },
             subtitle: {
                 text: document.ontouchstart === undefined ?
@@ -349,7 +361,7 @@
 					var rate = toCurrency(Math.round(this.y).toString());
 					var tooltip_html = "<table>";
 					this.points.forEach(function(entry){
-						tooltip_html += '<tr><td>'+ dateString +'</td></tr><tr><td style="text-align: right"><b>' + rate +'</b></td></tr>';
+						tooltip_html += '<tr><td>'+ dateString +'</td></tr><tr><td style="text-align: right"><b>USD&nbsp;' + rate +'</b></td></tr>';
 					});
 					tooltip_html += "</table>";
 					
@@ -388,7 +400,7 @@
 
             series: [{
                 type: 'area',
-                name: 'USD to Ethereum',
+                name: 'USD to ETH',
                 data: data
             }]
         });

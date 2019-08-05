@@ -41,9 +41,9 @@ function generateMenu(){
 	
 	
 	//s += "<li" + (thisPageName=="TransactionHistory.html"?" class='active'":"") + "><a href='TransactionHistory.html'><i class='fa fa-table'></i> Transaction History</a></li>";
-	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-columns'></i> My Wallet</a></li>";
-	s += "<li" + (thisPageName=="SIMActivities.html"?" class='active'":"") + "><a href='SIMActivities.html'><i class='fa fa-mobile-phone'></i> Cold Wallet SIM Activities</a></li>";
-	s += "<li" + (thisPageName=="MarketChart.html"?" class='active'":"") + "><a href='MarketChart.html'><i class='fa fa-mobile-phone'></i> Market Chart</a></li>";
+	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-money'></i> My Wallet</a></li>";
+	s += "<li" + (thisPageName=="SIMActivities.html"?" class='active'":"") + "><a href='SIMActivities.html'><i class='fa fa-file-text-o'></i> Cold Wallet SIM Activities</a></li>";
+	s += "<li" + (thisPageName=="MarketChart.html"?" class='active'":"") + "><a href='MarketChart.html'><i class='fa fa-area-chart'></i> Market Chart</a></li>";
 	/**
 	s += "<li class='treeview" + (thisPageName=="WalletList.html"||thisPageName=="WalletCreate.html"?" active":"") + "'>";
 	s += "	<a href='#'>";
@@ -68,8 +68,8 @@ function generateMenu(){
 	s += "		</span>";
 	s += "	</a>";
 	s += "	<ul class='treeview-menu'>";
-	s += "		<li" + (thisPageName=="PairCard.html"?" class='active'":"") + "><a href='PairCard.html'><i class='fa fa-circle-o'></i> Pair Cold Wallet SIM</a></li>";
-	s += "		<li" + (thisPageName=="SystemInfo.html"?" class='active'":"") + "><a href='SystemInfo.html'><i class='fa fa-circle-o'></i> System Information</a></li>";
+	s += "		<li" + (thisPageName=="PairCard.html"?" class='active'":"") + "><a href='PairCard.html'><i class='fa fa-handshake-o'></i> Pair Cold Wallet SIM</a></li>";
+	s += "		<li" + (thisPageName=="SystemInfo.html"?" class='active'":"") + "><a href='SystemInfo.html'><i class='fa fa-info-circle'></i> System Information</a></li>";
 	s += "	</ul>";
 	s += "</li>";
 
