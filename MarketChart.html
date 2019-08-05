@@ -114,6 +114,15 @@
 				</div><!-- /.box-body -->
 			</div><!-- /.box -->
 
+			<div class="box" id="boxETH">
+				<div class="box-header with-border">
+					<h3 class="box-title">Ethereum</h3>
+				</div><!-- /.box-header -->
+				<div class="box-body">
+					<div id="chartETH" style="height: 400px"></div>
+				</div><!-- /.box-body -->
+			</div><!-- /.box -->
+
 		</section><!-- /.content -->
 	</div><!-- /.content-wrapper -->
 
@@ -164,7 +173,11 @@
 
 	function getChartData(){
 		addLoadingOverlay('#boxBTC');
-		var url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=USD&from=1546272000&to=1564934400";
+		addLoadingOverlay('#boxETH');
+		var dateTime = Date.now();
+		var timestamp = Math.floor(dateTime / 1000);
+		var timestampOneYearAgo = timestamp - 86400 * 365;
+		var url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=USD&from=" + timestampOneYearAgo + "&to=" + timestamp;
 		var sData = "";
 		
 		$.getJSON(
@@ -176,7 +189,22 @@
 					btcData = json;
 					drawBtcChart(json.prices);
 				}else{
-					msgBox("Unable to get data");
+					msgBox("Unable to get BTC data");
+				}
+			}
+		);
+		
+		url = "https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=USD&from=" + timestampOneYearAgo + "&to=" + timestamp;
+		$.getJSON(
+			url,
+			function(json){
+				console.log(json);
+				removeLoadingOverlay('#boxETH');
+				if(typeof(json)=="object"){
+					btcData = json;
+					drawEthChart(json.prices);
+				}else{
+					msgBox("Unable to get ETH data");
 				}
 			}
 		);
@@ -200,7 +228,7 @@
                 zoomType: 'x'
             },
             title: {
-                text: 'USD to Bitcoin exchange rate over time'
+                text: 'USD to Bitcoin exchange rate (one year)'
             },
             subtitle: {
                 text: document.ontouchstart === undefined ?
@@ -220,6 +248,29 @@
             legend: {
                 enabled: false
             },
+			tooltip: {
+				formatter: function() {
+					var date = new Date(this.x);
+					var year = date.getUTCFullYear();
+					var month = date.getUTCMonth() + 1;
+					var day = date.getUTCDate();
+					var dateString = year + "-" + month + "-" + day;
+					/*
+					tooltip_html = "<b>" + dateString + "<br>" + toCurrency(Math.round(this.y).toString()) + "</b>";
+					*/
+					var rate = toCurrency(Math.round(this.y).toString());
+					var tooltip_html = "<table>";
+					this.points.forEach(function(entry){
+						tooltip_html += '<tr><td>'+ dateString +'</td></tr><tr><td style="text-align: right"><b>' + rate +'</b></td></tr>';
+					});
+					tooltip_html += "</table>";
+					
+					return tooltip_html;
+				},
+				shared: true,
+				useHTML: true,
+				crosshairs: true
+			},
             plotOptions: {
                 area: {
                     fillColor: {
@@ -255,4 +306,93 @@
         });
 
 	}
+
+
+
+	function drawEthChart(data){
+
+		Highcharts.chart('chartETH', {
+            chart: {
+                zoomType: 'x'
+            },
+            title: {
+                text: 'USD to Ethereum exchange rate (one year)'
+            },
+            subtitle: {
+                text: document.ontouchstart === undefined ?
+                    'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
+            },
+            xAxis: {
+                type: 'date',
+				labels: {
+					format: '{value:%Y-%m-%d}'
+				}
+            },
+            yAxis: {
+                title: {
+                    text: 'Exchange rate'
+                }
+            },
+            legend: {
+                enabled: false
+            },
+			tooltip: {
+				formatter: function() {
+					var date = new Date(this.x);
+					var year = date.getUTCFullYear();
+					var month = date.getUTCMonth() + 1;
+					var day = date.getUTCDate();
+					var dateString = year + "-" + month + "-" + day;
+					/*
+					tooltip_html = "<b>" + dateString + "<br>" + toCurrency(Math.round(this.y).toString()) + "</b>";
+					*/
+					var rate = toCurrency(Math.round(this.y).toString());
+					var tooltip_html = "<table>";
+					this.points.forEach(function(entry){
+						tooltip_html += '<tr><td>'+ dateString +'</td></tr><tr><td style="text-align: right"><b>' + rate +'</b></td></tr>';
+					});
+					tooltip_html += "</table>";
+					
+					return tooltip_html;
+				},
+				shared: true,
+				useHTML: true,
+				crosshairs: true
+			},
+            plotOptions: {
+                area: {
+                    fillColor: {
+                        linearGradient: {
+                            x1: 0,
+                            y1: 0,
+                            x2: 0,
+                            y2: 1
+                        },
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                        ]
+                    },
+                    marker: {
+                        radius: 2
+                    },
+                    lineWidth: 1,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                    threshold: null
+                }
+            },
+
+            series: [{
+                type: 'area',
+                name: 'USD to Ethereum',
+                data: data
+            }]
+        });
+
+	}
+
 </script>

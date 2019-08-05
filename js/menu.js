@@ -43,6 +43,7 @@ function generateMenu(){
 	//s += "<li" + (thisPageName=="TransactionHistory.html"?" class='active'":"") + "><a href='TransactionHistory.html'><i class='fa fa-table'></i> Transaction History</a></li>";
 	s += "<li" + (thisPageName=="WalletManagement.html"?" class='active'":"") + "><a href='WalletManagement.html'><i class='fa fa-columns'></i> My Wallet</a></li>";
 	s += "<li" + (thisPageName=="SIMActivities.html"?" class='active'":"") + "><a href='SIMActivities.html'><i class='fa fa-mobile-phone'></i> Cold Wallet SIM Activities</a></li>";
+	s += "<li" + (thisPageName=="MarketChart.html"?" class='active'":"") + "><a href='MarketChart.html'><i class='fa fa-mobile-phone'></i> Market Chart</a></li>";
 	/**
 	s += "<li class='treeview" + (thisPageName=="WalletList.html"||thisPageName=="WalletCreate.html"?" active":"") + "'>";
 	s += "	<a href='#'>";
