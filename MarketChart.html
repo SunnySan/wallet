@@ -207,7 +207,10 @@
                     'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
             },
             xAxis: {
-                type: 'date'
+                type: 'date',
+				labels: {
+					format: '{value:%Y-%m-%d}'
+				}
             },
             yAxis: {
                 title: {
