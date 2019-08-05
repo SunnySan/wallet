@@ -11,6 +11,7 @@
 <%@page import="java.nio.charset.StandardCharsets" %>
 
 <%@page import="org.web3j.protocol.Web3j" %>
+<%@page import="org.web3j.protocol.core.JsonRpc2_0Web3j" %>
 <%@page import="org.web3j.protocol.http.HttpService" %>
 <%@page import="org.web3j.protocol.core.DefaultBlockParameterName" %>
 
@@ -198,7 +199,9 @@ if (currencyId.equals("ETH")){
 }
 
 //取得 Web3j 服務
-Web3j web3j = Web3j.build(new HttpService(ethApiEndPoint));
+//Web3j web3j = Web3j.build(new HttpService(ethApiEndPoint));	//這個寫法只能用於 JAVA 1.8以上
+Web3j web3j = new JsonRpc2_0Web3j(new HttpService(ethApiEndPoint));
+
 
 //取得sender address的 nonce
 EthGetTransactionCount ethGetTransactionCount = web3j.ethGetTransactionCount(
