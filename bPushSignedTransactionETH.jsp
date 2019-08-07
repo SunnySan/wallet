@@ -303,6 +303,8 @@ writeLog("debug", "Raw transaction getEncoded: 0x{}=" + valueToSend);
 EthSendTransaction ethSendTransaction = web3j.ethSendRawTransaction("0x" + byte2Hex(tx2.getEncoded())).sendAsync().get();
 if (ethSendTransaction.hasError()) {
 	writeLog("error", "Error while sending raw transaction to blockchain: " + ethSendTransaction.getError().getMessage());
+	sResultCode	= gcResultCodeUnknownError;
+	sResultText	= "Error while sending raw transaction to blockchain";
 }else{
 	txid = ethSendTransaction.getTransactionHash();
 	writeLog("debug", "Raw transaction hash id= " + txid);
