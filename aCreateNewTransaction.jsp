@@ -84,6 +84,8 @@ String		hashToBeSigned		= "";
 String		transactionId		= generateRequestId();
 
 String		sApdu				= "";
+int			iSignatureCount		= 0;
+String		aHash[]				= null;
 
 //確認呼叫者身分
 sSQL = "SELECT App_Id";
@@ -151,12 +153,15 @@ for (i = 0; i < tx.getInputs().size(); i++) {
 	m1 = new HashMap();
 	m1.put("hash", byte2Hex(hash.getBytes()));
 	l1.add(m1);
+	iSignatureCount++;
 }
 
 //在STK顯示給用戶看的訊息
 ss = "Do you want to send  " + currencyId + " " + amount + " to " + toAddress + " ?";
 ss = string2Hex(ss, "UTF8");
-sApdu = "AABBDD310000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+3), 2) + "50" + MakesUpZero(walletId, 2) + MakesUpZero(Integer.toHexString(ss.length()/2), 2) + ss;
+//sApdu = "AABBDD310000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+3), 2) + "50" + MakesUpZero(walletId, 2) + MakesUpZero(Integer.toHexString(ss.length()/2), 2) + ss;
+//UTF-8 傳 04 UCS2 傳08
+sApdu = "AABBDD315000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+2), 2) + MakesUpZero(walletId, 2) + "04" + ss;
 
 sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Transaction_Id, Wallet_Id, Wallet_Name, Currency_Id, CMD, APDU, Status) VALUES (";
 sSQL += "'" + sUser + "',";
@@ -178,7 +183,7 @@ sSQL += "'" + "Init" + "'";
 sSQL += ")";
 sSQLList.add(sSQL);
 
-sSQL = "INSERT INTO cwallet_transaction (Create_User, Create_Date, Update_User, Update_Date, App_Id, Card_Id, Wallet_Id, Transaction_Id, Currency_Id, To_Address, Amount, Transaction_Fee, Unsigned_Hex, Hash_To_Be_Signed, Signed_Hex, Status) VALUES (";
+sSQL = "INSERT INTO cwallet_transaction (Create_User, Create_Date, Update_User, Update_Date, App_Id, Card_Id, Wallet_Id, Transaction_Id, Currency_Id, To_Address, Amount, Transaction_Fee, Unsigned_Hex, Hash_To_Be_Signed, Signed_Hex, Signature_Count, Status) VALUES (";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
 sSQL += "'" + sUser + "',";
@@ -194,9 +199,26 @@ sSQL += (beEmpty(transactionFee)?"0.0":transactionFee) + ",";
 sSQL += "'" + unsignedHash + "',";
 sSQL += "'" + hashToBeSigned + "',";
 sSQL += "'" + "" + "',";
+sSQL += String.valueOf(iSignatureCount) + ",";
 sSQL += "'" + "Init" + "'";
 sSQL += ")";
 sSQLList.add(sSQL);
+
+aHash = hashToBeSigned.split(",");
+for (i=0; i<iSignatureCount; i++){
+	sSQL = "INSERT INTO cwallet_transaction_hash (Create_User, Create_Date, Update_User, Update_Date, Transaction_Id, Hash_Index, Hash_To_Be_Signed, Signed_Hex, Status) VALUES (";
+	sSQL += "'" + sUser + "',";
+	sSQL += "'" + sDate + "',";
+	sSQL += "'" + sUser + "',";
+	sSQL += "'" + sDate + "',";
+	sSQL += "'" + transactionId + "',";
+	sSQL += String.valueOf(i+1) + ",";
+	sSQL += "'" + aHash[i] + "',";
+	sSQL += "NULL,";
+	sSQL += "'" + "Init" + "'";
+	sSQL += ")";
+	sSQLList.add(sSQL);
+}
 
 ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);
 sResultCode = ht.get("ResultCode").toString();

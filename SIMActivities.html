@@ -289,10 +289,10 @@
 					s = "";
 					$.each( data.records, function(i, r) {
 						s += "<tr>";
-						if (r.Status!="Init"){
-							s += "<td>&nbsp;</td>";
-						}else{
+						if (r.Status=="Init" || (r.Status=="Sync" && r.Job_Type=="T")){
 							s += "<td><input type='checkbox' value='" + r.id + "'></td>";
+						}else{
+							s += "<td>&nbsp;</td>";
 						}
 						s += "<td class='mailbox-name'>" + r.Create_Date + "</td>";
 						s += "<td class='mailbox-subject'><b>" + r.Wallet_Name + "</b></td>";

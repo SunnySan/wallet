@@ -189,7 +189,7 @@ sSQL += "'" + "Init" + "'";
 sSQL += ")";
 sSQLList.add(sSQL);
 
-sSQL = "INSERT INTO cwallet_transaction (Create_User, Create_Date, Update_User, Update_Date, App_Id, Card_Id, Wallet_Id, Transaction_Id, Currency_Id, To_Address, Amount, Transaction_Fee, Unsigned_Hex, Hash_To_Be_Signed, Signed_Hex, Signature_Count, Status) VALUES (";
+sSQL = "INSERT INTO cwallet_transaction (Create_User, Create_Date, Update_User, Update_Date, App_Id, Card_Id, Wallet_Id, Transaction_Id, Currency_Id, To_Address, Amount, Transaction_Fee, Unsigned_Hex, Hash_To_Be_Signed, Signed_Hex, Status) VALUES (";
 sSQL += "'" + sUser + "',";
 sSQL += "'" + sDate + "',";
 sSQL += "'" + sUser + "',";
@@ -205,20 +205,6 @@ sSQL += String.valueOf(Float.parseFloat(gasPrice)/1000000000) + ",";	//注意：
 sSQL += "'" + unsignedHash + "',";
 sSQL += "'" + unsignedHash + "',";
 sSQL += "'" + "" + "',";
-sSQL += "1,";	//ETH只會有一個hash需要簽名，BTC才可能有多個
-sSQL += "'" + "Init" + "'";
-sSQL += ")";
-sSQLList.add(sSQL);
-
-sSQL = "INSERT INTO cwallet_transaction_hash (Create_User, Create_Date, Update_User, Update_Date, Transaction_Id, Hash_Index, Hash_To_Be_Signed, Signed_Hex, Status) VALUES (";
-sSQL += "'" + sUser + "',";
-sSQL += "'" + sDate + "',";
-sSQL += "'" + sUser + "',";
-sSQL += "'" + sDate + "',";
-sSQL += "'" + transactionId + "',";
-sSQL += "1,";
-sSQL += "'" + unsignedHash + "',";
-sSQL += "NULL,";
 sSQL += "'" + "Init" + "'";
 sSQL += ")";
 sSQLList.add(sSQL);

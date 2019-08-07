@@ -80,7 +80,14 @@ if (!sResultCode.equals(gcResultCodeSuccess)){	//有誤
 
 sSQL = "UPDATE cwallet_bip_job_queue SET Status='Canceled'";
 sSQL += " WHERE id IN " + idList;
+sSQLList.add(sSQL);
 
+sSQL = "UPDATE cwallet_transaction SET Status='Canceled'";
+sSQL += "WHERE Transaction_Id IN (SELECT Transaction_Id FROM cwallet_bip_job_queue WHERE id IN " + idList + ")";
+sSQLList.add(sSQL);
+
+sSQL = "UPDATE cwallet_transaction_hash SET Status='Canceled'";
+sSQL += "WHERE Transaction_Id IN (SELECT Transaction_Id FROM cwallet_bip_job_queue WHERE id IN " + idList + ")";
 sSQLList.add(sSQL);
 
 ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);

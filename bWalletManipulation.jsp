@@ -119,6 +119,10 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 		sSQL += " WHERE Card_Id='" + cardId + "'";
 		sSQL += " AND Wallet_Id='" + walletId + "'";
 		sSQLList.add(sSQL);
+		sSQL = "DELETE FROM cwallet_wallet_currency";
+		sSQL += " WHERE Card_Id='" + cardId + "'";
+		sSQL += " AND Wallet_Id='" + walletId + "'";
+		sSQLList.add(sSQL);
 	}
 
 	if (action.equals("A")){	//A=Add currency to wallet

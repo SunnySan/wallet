@@ -110,18 +110,21 @@ if (cmd.equals("33")){	//Get child (從卡片傳回
 	sData += "&data=" + content;
 }	//if (cmd.equals("33")){	//Get child (從卡片傳回
 
-if (cmd.equals("51")){	//Sign – Get Data
+if (cmd.equals("50")){	//Sign – Get Data
 	sJsp = "bGetHashToBeSigned.jsp";
 	sData = "cardId=" + cardId;
+	sData += "&hashIndex=0";
 }	//if (cmd.equals("51")){	//Sign – Get Data
 
-if (cmd.equals("52")){	//Sign - Signature
+if (cmd.equals("51")){	//Sign - Signature
 	currencyId = getCurrencyIdOfTransaction(cardId);
 	if (notEmpty(currencyId)){
 		if (currencyId.equals("BTC") || currencyId.equals("BTCTEST")){
-			sJsp = "bPushSignedTransaction.jsp";
+			//sJsp = "bPushSignedTransaction.jsp";
+			sJsp = "bGetHashToBeSigned.jsp";
 			sData = "cardId=" + cardId;
-			sData += "&data=" + content;
+			sData += "&hashIndex=" + Integer.parseInt(content.substring(2, 4), 16);	//把HEX字串的值轉成10進位的int
+			sData += "&signature=" + content.substring(6);
 		}else{
 			sJsp = "bPushSignedTransactionETH.jsp";
 			sData = "cardId=" + cardId;
@@ -160,6 +163,7 @@ if (cmd.equals("45")){	//Delete Wallet
 
 
 if (notEmpty(sJsp)){	//執行相對應的作業
+	writeLog("debug", "Connect to BIP process: " + myURL + sJsp);
 	try{
 		URL u;
 		u = new URL(myURL + sJsp);
