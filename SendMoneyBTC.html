@@ -180,7 +180,8 @@
 
 
 
-				<div class="col-lg-6 col-xs-12" style="display:none;"><!--Sunny: 隱藏不顯示-->
+				<!--<div class="col-lg-6 col-xs-12" style="display:none;">--><!--Sunny: 隱藏不顯示-->
+				<div class="col-lg-6 col-xs-12">
 					<div class="box">
 						<div class="box-header with-border">
 							<h3 class="box-title">Signature(s)</h3>
@@ -639,7 +640,7 @@
 		sData += "&publicKey=" + currencyPublicKey;
 
 		//getDataFromServer("testGetHashToBeSigned.jsp", sData, "json", function(data){
-		getDataFromServer("aCreateNewTransaction.jsp", sData, "json", function(data){
+		getDataFromServer("aCreateNewTransactionBTC.jsp", sData, "json", function(data){
 			if (!data.resultCode || !data.resultText){
 				msgBox("Unable to get hash data for signing.");
 				return;

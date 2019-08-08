@@ -56,6 +56,7 @@ OutputStream o		= null;
 
 String requestString		= nullToString(request.getParameter("c"), "");
 
+writeLog("debug", "\n\n================================================================================");
 writeLog("debug", "BIP command= " + requestString);
 requestString = requestString.replaceAll("/", "");
 writeLog("debug", "BIP command (remove slash)= " + requestString);
@@ -64,7 +65,8 @@ if (beEmpty(requestString) || requestString.length()<18){
 	writeLog("debug", "BIP cmd is invalid= " + requestString);
 	sResponse = "Invalid parameter";
 	sResponse = "AABBDDA20000010101" + Integer.toHexString(string2Hex(sResponse, "UTF8").length()+1) + "04" + string2Hex(sResponse, "UTF8");
-	writeLog("debug", "Response= " + sResponse);
+	writeLog("debug", "APDU Response= " + sResponse);
+	writeLog("debug", "================================================================================\n\n");
 	o = response.getOutputStream();
 	o.write(hex2Byte(sResponse));
 	o.close();
@@ -86,17 +88,20 @@ String	currencyId	= "";
 if (requestString.length()>18) content = requestString.substring(18);
 
 if (cmd.equals("30")){	//Link APP, pair with web/APP
+	writeLog("debug", "Do job [  Pair Card ]");
 	sJsp = "bPairCard.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&pairCode=" + content;
 }	//if (cmd.equals("30")){	//Link APP, pair with web/APP
 
 if (cmd.equals("31")){	//Sync System
+	writeLog("debug", "Do job [ Sync System ]");
 	sJsp = "bSyncSystem.jsp";
 	sData = "cardId=" + cardId;
 }	//if (cmd.equals("31")){	//Sync System
 
 if (cmd.equals("32")){	//Upload Wallet
+	writeLog("debug", "Do job [ Upload wallet ]");
 	sJsp = "bWalletManipulation.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&action=U";
@@ -104,6 +109,7 @@ if (cmd.equals("32")){	//Upload Wallet
 }	//if (cmd.equals("32")){	//Upload Wallet
 
 if (cmd.equals("33")){	//Get child (從卡片傳回
+	writeLog("debug", "Do job [ Add Child Key ]");
 	sJsp = "bWalletManipulation.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&action=A";
@@ -111,29 +117,32 @@ if (cmd.equals("33")){	//Get child (從卡片傳回
 }	//if (cmd.equals("33")){	//Get child (從卡片傳回
 
 if (cmd.equals("50")){	//Sign – Get Data
+	writeLog("debug", "Do job [ Get Hash For Signing ]");
 	sJsp = "bGetHashToBeSigned.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&hashIndex=0";
 }	//if (cmd.equals("51")){	//Sign – Get Data
 
 if (cmd.equals("51")){	//Sign - Signature
+	writeLog("debug", "Do job [ Get Hash For Signing or Send Raw Transaction ]");
 	currencyId = getCurrencyIdOfTransaction(cardId);
 	if (notEmpty(currencyId)){
 		if (currencyId.equals("BTC") || currencyId.equals("BTCTEST")){
-			//sJsp = "bPushSignedTransaction.jsp";
+			//sJsp = "bPushSignedTransactionBTC.jsp";
 			sJsp = "bGetHashToBeSigned.jsp";
 			sData = "cardId=" + cardId;
-			sData += "&hashIndex=" + Integer.parseInt(content.substring(2, 4), 16);	//把HEX字串的值轉成10進位的int
-			sData += "&signature=" + content.substring(6);
+			sData += "&hashIndex=" + Integer.parseInt(content.substring(0, 2), 16);	//把HEX字串的值轉成10進位的int
+			sData += "&signature=" + content.substring(4);
 		}else{
 			sJsp = "bPushSignedTransactionETH.jsp";
 			sData = "cardId=" + cardId;
-			sData += "&data=" + content;
+			sData += "&data=" + content.substring(4);
 		}
 	}
 }	//if (cmd.equals("52")){	//Sign - Signature
 
 if (cmd.equals("40")){	//Create Wallet
+	writeLog("debug", "Do job [ Create wallet ]");
 	sJsp = "bWalletManipulation.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&action=C";
@@ -141,6 +150,7 @@ if (cmd.equals("40")){	//Create Wallet
 }	//if (cmd.equals("40")){	//Create Wallet
 
 if (cmd.equals("41")){	//Import Wallet
+	writeLog("debug", "Do job [ Import wallet ]");
 	sJsp = "bWalletManipulation.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&action=I";
@@ -148,6 +158,7 @@ if (cmd.equals("41")){	//Import Wallet
 }	//if (cmd.equals("41")){	//Import Wallet
 
 if (cmd.equals("43")){	//Rename Wallet
+	writeLog("debug", "Do job [ Rename wallet ]");
 	sJsp = "bWalletManipulation.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&action=R";
@@ -155,6 +166,7 @@ if (cmd.equals("43")){	//Rename Wallet
 }	//if (cmd.equals("43")){	//Rename Wallet
 
 if (cmd.equals("45")){	//Delete Wallet
+	writeLog("debug", "Do job [ Delete wallet ]");
 	sJsp = "bWalletManipulation.jsp";
 	sData = "cardId=" + cardId;
 	sData += "&action=D";
@@ -163,7 +175,8 @@ if (cmd.equals("45")){	//Delete Wallet
 
 
 if (notEmpty(sJsp)){	//執行相對應的作業
-	writeLog("debug", "Connect to BIP process: " + myURL + sJsp);
+	writeLog("debug", "Connect to BIP handler: " + myURL + sJsp);
+	writeLog("debug", "Post data: " + sData);
 	try{
 		URL u;
 		u = new URL(myURL + sJsp);
@@ -192,9 +205,10 @@ if (notEmpty(sJsp)){	//執行相對應的作業
 		bOK = true;
 	}catch (IOException e){ 
 		sResponse = e.toString();
-		writeLog("error", "Exception when send message to JSP: " + e.toString());
+		writeLog("error", "Exception when send message to BIP handler: " + e.toString());
 		sResponse = "AABBDDA20000010101" + Integer.toHexString(string2Hex(sResponse, "UTF8").length()) + "04" + string2Hex(sResponse, "UTF8");
-		writeLog("error", "Response= " + sResponse);
+		writeLog("error", "APDU Response(Error)= " + sResponse);
+		writeLog("debug", "================================================================================\n\n");
 		o = response.getOutputStream();
 		o.write(hex2Byte(sResponse));
 		o.close();
@@ -221,7 +235,8 @@ if (bOK && notEmpty(sResponse)){	//有取得JSP的回應
 	sResponse = "AABBDDA20000010101" + MakesUpZero(Integer.toHexString(string2Hex(sResultText, "UTF8").length()/2+1), 2) + "04" + string2Hex(sResultText, "UTF8");
 }	//if (notEmpty(sResponse)){	//有取得JSP的回應
 
-writeLog("debug", "Response message= " + sResponse);
+writeLog("debug", "APDU Response message= " + sResponse);
+writeLog("debug", "================================================================================\n\n");
 
 o = response.getOutputStream();
 o.write(hex2Byte(sResponse));

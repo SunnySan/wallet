@@ -114,17 +114,6 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 		sSQLList.add(sSQL);
 	}
 
-	if (action.equals("D") || action.equals("U")){	//D=Delete Wallet, U=Upload wallet
-		sSQL = "DELETE FROM cwallet_card_wallet";
-		sSQL += " WHERE Card_Id='" + cardId + "'";
-		sSQL += " AND Wallet_Id='" + walletId + "'";
-		sSQLList.add(sSQL);
-		sSQL = "DELETE FROM cwallet_wallet_currency";
-		sSQL += " WHERE Card_Id='" + cardId + "'";
-		sSQL += " AND Wallet_Id='" + walletId + "'";
-		sSQLList.add(sSQL);
-	}
-
 	if (action.equals("A")){	//A=Add currency to wallet
 		currencyId = "ETH";
 		sSQL = "SELECT Wallet_Id, Currency_Id";
@@ -234,6 +223,19 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	out.flush();
 	return;
 }	//if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
+
+if (action.equals("D") || action.equals("U")){	//D=Delete Wallet, U=Upload wallet
+	sSQL = "DELETE FROM cwallet_card_wallet";
+	sSQL += " WHERE Card_Id='" + cardId + "'";
+	//sSQL += " AND Wallet_Id='" + walletId + "'";
+	sSQLList.add(sSQL);
+	//writeLog("debug", "Exec SQL= " + sSQL);
+	sSQL = "DELETE FROM cwallet_wallet_currency";
+	sSQL += " WHERE Card_Id='" + cardId + "'";
+	//sSQL += " AND Wallet_Id='" + walletId + "'";
+	sSQLList.add(sSQL);
+	//writeLog("debug", "Exec SQL= " + sSQL);
+}
 
 if (action.equals("U")){	//Upload wallet，格式為 Card ID / 32 / ‘0’ ‘3’ / 01 08 “Jonathan” 02 03 “Ken” 03 07 “Charles”
 	int walletCount = Integer.parseInt(data.substring(0, 2), 16);	//walletCount就是上面的‘0’ ‘3’

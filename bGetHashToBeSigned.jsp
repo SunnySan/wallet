@@ -108,6 +108,8 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 		sSQL += " WHERE Transaction_Id='" + transactionId + "'";
 		sSQL += " AND Hash_Index=" + hashIndex;
 		sSQLList.add(sSQL);
+		//writeLog("debug", "Update cwallet_transaction_hash, SQL= " + sSQL);
+
 		ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);
 		sResultCode = ht.get("ResultCode").toString();
 		sResultText = ht.get("ResultText").toString();
@@ -195,7 +197,7 @@ out.flush();
 		String nextAction = "50";
 		//if ((hashIndex.equals("0") && iSignatureCount==1) || (!hashIndex.equals("0") && Integer.parseInt(hashIndex)==iSignatureCount)) nextAction = "51";
 		nextAction = "51";
-		sApdu = "AABBDD" + (hashIndex.equals("0")?"50":"51") + nextAction + "00" + "01" + MakesUpZero(Integer.toHexString(Integer.parseInt(hashIndex)), 2) + MakesUpZero(Integer.toHexString(iSignatureCount), 2) + MakesUpZero(Integer.toHexString((sApdu+hashToBeSigned).length()/2+1), 2) + MakesUpZero(walletId, 2) + sApdu + hashToBeSigned;
+		sApdu = "AABBDD" + (hashIndex.equals("0")?"50":"51") + nextAction + "00" + "01" + (hashIndex.equals("0")?"01":MakesUpZero(Integer.toHexString(Integer.parseInt(hashIndex)), 2)) + MakesUpZero(Integer.toHexString(iSignatureCount), 2) + MakesUpZero(Integer.toHexString((sApdu+hashToBeSigned).length()/2+1), 2) + MakesUpZero(walletId, 2) + sApdu + hashToBeSigned;
 		return sApdu;
 	}
 	
@@ -205,7 +207,7 @@ out.flush();
 		String sResponse = "";
 
 		if (currencyId.equals("BTC") || currencyId.equals("BTCTEST")){
-			sJsp = "bPushSignedTransaction.jsp";
+			sJsp = "bPushSignedTransactionBTC.jsp";
 			sData = "transactionId=" + transactionId;
 		}else{
 			sJsp = "bPushSignedTransactionETH.jsp";

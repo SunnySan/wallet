@@ -59,18 +59,19 @@ String	sResponse	= "";
 
 /*********************開始做事吧*********************/
 
-String cardId		= nullToString(request.getParameter("cardId"), "");
-String signature	= nullToString(request.getParameter("data"), "");
+String cardId			= nullToString(request.getParameter("cardId"), "");
+String signature		= nullToString(request.getParameter("data"), "");
+String transactionId	= nullToString(request.getParameter("transactionId"), "");
 
-if (beEmpty(cardId) || beEmpty(signature)){
-	writeLog("debug", "BIP push signed transaction parameter not found for Card_Id= " + cardId + ", signature=" + signature);
+if ((beEmpty(cardId) && beEmpty(signature) && beEmpty(transactionId)) || (beEmpty(transactionId) && ((beEmpty(cardId) && notEmpty(signature))||(notEmpty(cardId) && beEmpty(signature))))){
+	writeLog("debug", "BIP push signed BTC/BTETEST transaction parameter not found for Card_Id= " + cardId + ", signature= " + signature + ", transactionId= " + transactionId);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);
 	out.print(obj);
 	out.flush();
 	return;
 }else{
-	writeLog("debug", "BIP push signed transaction for Card_Id= " + cardId + ", signature=" + signature);
+	writeLog("debug", "BIP push signed BTC/BTETEST transaction for Card_Id= " + cardId + ", signature= " + signature + ", transactionId= " + transactionId);
 }
 
 Hashtable	ht					= new Hashtable();
@@ -101,13 +102,17 @@ URL			u;
 String		sUrl				= "";
 String		sData				= "";
 
-sSQL = "SELECT A.id, B.id, B.Currency_Id, B.Unsigned_Hex, C.Address, C.Publicy_Key";
+sSQL = "SELECT A.id, B.id, B.Currency_Id, B.Unsigned_Hex, C.Address, C.Publicy_Key, A.Transaction_Id";
 sSQL += " FROM cwallet_bip_job_queue A, cwallet_transaction B, cwallet_wallet_currency C";
-sSQL += " WHERE A.Card_Id='" + cardId + "'";
+if (notEmpty(transactionId)){
+	sSQL += " WHERE A.Transaction_Id='" + transactionId + "'";
+}else{
+	sSQL += " WHERE A.Card_Id='" + cardId + "'";
+	sSQL += " AND A.Status='" + "Sync" + "'";
+}
 sSQL += " AND A.CMD='" + "50" + "'";
-sSQL += " AND A.Status='" + "Sync" + "'";
 sSQL += " AND A.Transaction_Id=B.Transaction_Id";
-sSQL += " AND C.Card_Id='" + cardId + "'";
+sSQL += " AND C.Card_Id=B.Card_Id";
 sSQL += " AND C.Wallet_Id=B.Wallet_Id";
 sSQL += " AND C.Currency_Id=B.Currency_Id";
 sSQL += " ORDER BY A.id desc";
@@ -125,8 +130,27 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	unsignedHash = s[0][3];
 	address = s[0][4];
 	publicKey = s[0][5];
+	transactionId = s[0][6];
+	writeLog("debug", "transactionId= " + transactionId);
 
-	String[] aSig = signature.split(",");
+	sSQL = "SELECT Signed_Hex FROM cwallet_transaction_hash";
+	sSQL += " WHERE Transaction_Id='" + transactionId + "'";
+	sSQL += " ORDER BY Hash_Index";
+	ht = getDBData(sSQL, gcDataSourceNameCMSIOT);
+	
+	sResultCode = ht.get("ResultCode").toString();
+	sResultText = ht.get("ResultText").toString();
+	if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
+		s = (String[][])ht.get("Data");
+		writeLog("debug", "Signature count= " + String.valueOf(s.length));
+	}else{
+		writeLog("error", "BIP query BTC/BTCTEST transaction signature failed, transactionId= " + transactionId + ", sResultCode= " + sResultCode + ", sResultText= " + sResultText);
+		obj.put("resultCode", sResultCode);
+		obj.put("resultText", sResultText);
+		out.print(obj);
+		out.flush();
+		return;
+	}
 	
 	NetworkParameters params = null;
 	if (currencyId.equals("BTC")) params = NetworkParameters.fromID(NetworkParameters.ID_MAINNET);
@@ -134,11 +158,30 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	
 	Transaction tx = new Transaction(params, hex2Byte(unsignedHash));
 	
+	if (tx.getInputs().size()!=s.length){	//未簽名資料中，需簽名的hash個數和DB中的signature個數不同
+		writeLog("error", "BIP BTC/BTCTEST transaction signature count failed, transactionId= " + transactionId + ", there are " + String.valueOf(tx.getInputs().size()) + " hash(s) in the unsigned data, we hava " + s.length + " signatures.");
+		obj.put("resultCode", gcResultCodeNoDataFound);
+		obj.put("resultText", "Fail, signature count not match the hash count.");
+		out.print(obj);
+		out.flush();
+		return;
+	}
+	
+	writeLog("debug", "Starting injecting signature(s) to the unsigned BTC/BTCTEST raw transaction");
 	for (i = 0; i < tx.getInputs().size(); i++) {
 		TransactionInput transactionInput = tx.getInput(i);
 		Script scriptPubKey = ScriptBuilder.createOutputScript(Address.fromString(params, address));
 		
-		ECKey.ECDSASignature sig1 = ECKey.ECDSASignature.decodeFromDER(hex2Byte(aSig[i]));
+		if (beEmpty(s[i][0])){
+			writeLog("error", "BIP BTC/BTCTEST transaction, one or more signature is empty. transactionId= " + transactionId);
+			obj.put("resultCode", gcResultCodeNoDataFound);
+			obj.put("resultText", "Fail, signature count not match the hash count.");
+			out.print(obj);
+			out.flush();
+			return;
+		}
+
+		ECKey.ECDSASignature sig1 = ECKey.ECDSASignature.decodeFromDER(hex2Byte(s[i][0]));
 		sig1 = sig1.toCanonicalised();
 		
 		TransactionSignature txSig = null;
@@ -149,9 +192,14 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 			transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig));
 		} else {
 			if (!scriptPubKey.isSentToAddress()) {
+				writeLog("error", "Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey + ", transactionId= " + transactionId);
 				sResultCode = gcResultCodeUnknownError;
-				sResultText = "Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey;
-				//out.println("<p>Don't know how to sign for this kind of scriptPubKey: " + scriptPubKey);
+				sResultText = "Don't know how to sign for this kind of scriptPubKey";
+				obj.put("resultCode", sResultCode);
+				obj.put("resultText", sResultText);
+				out.print(obj);
+				out.flush();
+				return;
 			}
 			transactionInput.setScriptSig(ScriptBuilder.createInputScript(txSig, ECKey.fromPublicOnly(hex2Byte(publicKey))));
 		}
@@ -169,7 +217,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	
 	try
 	{
-		writeLog("debug", "Send transaction hex to " + sUrl + ", data= " + sData);
+		writeLog("debug", "Send BTC/BTCTEST transaction hex to " + sUrl + ", data= " + sData);
 	
 		String urlParameters  = sData;
 		byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );
@@ -213,6 +261,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 			JSONObject jsonObjectBody = (JSONObject) objBody;
 			ss = (String) jsonObjectBody.get("status");
 			if (beEmpty(ss) || !ss.equals("success")){
+				writeLog("error", sUrl + " doesn't reply success. It replies [ " + ss + " ]");
 				sResultCode = gcResultCodeUnknownError;
 				sResultText = ss;
 			}else{
@@ -220,21 +269,23 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 				jsonObjectBody = (JSONObject) objBody;
 				txid = (String) jsonObjectBody.get("txid");
 				bOK = true;
+				writeLog("info", sUrl + " replies success.");
 			}
 		}else{
+			writeLog("error", sUrl + " doesn't reply anything.");
 			sResultCode = gcResultCodeUnknownError;
 			sResultText = gcResultTextUnknownError;
 		}
 	}catch (IOException e){
 		sResponse = e.toString();
-		writeLog("error", "Exception when broadcast transaction to chain: " + e.toString());
+		writeLog("error", "Exception when broadcast BTC/BTCTEST transaction to chain: " + e.toString());
 		sResultCode = gcResultCodeUnknownError;
 		//sResultText = sResponse;
-		sResultText = "Unable to broadcast transaction to chain " + sResponse;
+		sResultText = "Fail, unable to broadcast transaction to chain.";
 	}
 
 }else{
-	writeLog("error", "BIP push signed transaction failed, sResultCode= " + sResultCode + ", sResultText= " + sResultText);
+	writeLog("error", "BIP query signed BTC/BTCTEST transaction data failed, SQL= " + sSQL + ", sResultCode= " + sResultCode + ", sResultText= " + sResultText);
 	obj.put("resultCode", sResultCode);
 	obj.put("resultText", sResultText);
 	out.print(obj);
@@ -242,6 +293,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	return;
 }	//if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 
+writeLog("debug", "Going to change transaction status in DB.");
 if (bOK){
 	sSQL = "UPDATE cwallet_bip_job_queue";
 	sSQL += " SET Status='Success'";

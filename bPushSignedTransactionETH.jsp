@@ -72,19 +72,20 @@ String	sResponse	= "";
 
 /*********************開始做事吧*********************/
 
-String cardId		= nullToString(request.getParameter("cardId"), "");
-String signature	= nullToString(request.getParameter("data"), "");
-String src			= nullToString(request.getParameter("src"), "");
+String cardId			= nullToString(request.getParameter("cardId"), "");
+String signature		= nullToString(request.getParameter("data"), "");
+String src				= nullToString(request.getParameter("src"), "");
+String transactionId	= nullToString(request.getParameter("transactionId"), "");
 
-if (beEmpty(cardId) || beEmpty(signature)){
-	writeLog("debug", "BIP push signed ETH/ETHTEST transaction parameter not found for Card_Id= " + cardId + ", signature=" + signature);
+if ((beEmpty(cardId) && beEmpty(signature) && beEmpty(transactionId)) || (beEmpty(transactionId) && ((beEmpty(cardId) && notEmpty(signature))||(notEmpty(cardId) && beEmpty(signature))))){
+	writeLog("debug", "BIP push signed ETH/ETHTEST transaction parameter not found for Card_Id= " + cardId + ", signature= " + signature + ", transactionId= " + transactionId);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
 	obj.put("resultText", gcResultTextParametersNotEnough);
 	out.print(obj);
 	out.flush();
 	return;
 }else{
-	writeLog("debug", "BIP push signed ETH/ETHTEST transaction for Card_Id= " + cardId + ", signature=" + signature);
+	writeLog("debug", "BIP push signed ETH/ETHTEST transaction for Card_Id= " + cardId + ", signature= " + signature + ", transactionId= " + transactionId);
 }
 
 Hashtable	ht					= new Hashtable();
@@ -121,17 +122,21 @@ String sGasPrice = "";
 String sMessageHash = "";
 
 
-sSQL = "SELECT A.id, B.id, B.Currency_Id, B.To_Address, B.Amount, B.Transaction_Fee, B.Hash_To_Be_Signed, C.Address, C.Publicy_Key";
+sSQL = "SELECT A.id, B.id, B.Currency_Id, B.To_Address, B.Amount, B.Transaction_Fee, B.Hash_To_Be_Signed, C.Address, C.Publicy_Key, B.Transaction_Id";
 sSQL += " FROM cwallet_bip_job_queue A, cwallet_transaction B, cwallet_wallet_currency C";
-sSQL += " WHERE A.Card_Id='" + cardId + "'";
-sSQL += " AND A.CMD='" + "50" + "'";
-if (notEmpty(src) && src.equals("web")){
-	sSQL += " AND (A.Status='" + "Init" + "' OR A.Status='" + "Sync" + "')";
+if (notEmpty(transactionId)){
+	sSQL += " WHERE A.Transaction_Id='" + transactionId + "'";
 }else{
-	sSQL += " AND A.Status='" + "Sync" + "'";
+	sSQL += " WHERE A.Card_Id='" + cardId + "'";
+	if (notEmpty(src) && src.equals("web")){
+		sSQL += " AND (A.Status='" + "Init" + "' OR A.Status='" + "Sync" + "')";
+	}else{
+		sSQL += " AND A.Status='" + "Sync" + "'";
+	}
 }
+sSQL += " AND A.CMD='" + "50" + "'";
 sSQL += " AND A.Transaction_Id=B.Transaction_Id";
-sSQL += " AND C.Card_Id='" + cardId + "'";
+sSQL += " AND C.Card_Id=B.Card_Id";
 sSQL += " AND C.Wallet_Id=B.Wallet_Id";
 sSQL += " AND C.Currency_Id=B.Currency_Id";
 sSQL += " ORDER BY A.id desc";
@@ -152,6 +157,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	sMessageHash = sa[0][6];
 	senderAddress = sa[0][7];
 	senderPublicKey = sa[0][8];
+	transactionId = sa[0][9];
 }else{
 	writeLog("error", "BIP push signed ETH/ETHTEST transaction failed, sResultCode= " + sResultCode + ", sResultText= " + sResultText);
 	obj.put("resultCode", sResultCode);
@@ -315,10 +321,14 @@ if (ethSendTransaction.hasError()) {
 if (bOK){
 	sSQL = "UPDATE cwallet_bip_job_queue";
 	sSQL += " SET Status='Success'";
+	sSQL += " ,Update_User='" + sUser + "'";
+	sSQL += " ,Update_Date='" + sDate + "'";
 	sSQL += " WHERE id=" + jobRowId;
 	sSQLList.add(sSQL);
 	sSQL = "UPDATE cwallet_transaction";
 	sSQL += " SET Status='Success'";
+	sSQL += " ,Update_User='" + sUser + "'";
+	sSQL += " ,Update_Date='" + sDate + "'";
 	sSQL += " ,Blockchain_Tx_Id='" + txid + "'";
 	sSQL += " ,Signed_Hex='" + valueToSend + "'";
 	sSQL += " WHERE id=" + transactionRowId;
@@ -328,14 +338,27 @@ if (bOK){
 }else{
 	sSQL = "UPDATE cwallet_bip_job_queue";
 	sSQL += " SET Status='Fail'";
+	sSQL += " ,Update_User='" + sUser + "'";
+	sSQL += " ,Update_Date='" + sDate + "'";
 	sSQL += " WHERE id=" + jobRowId;
 	sSQLList.add(sSQL);
 	sSQL = "UPDATE cwallet_transaction";
 	sSQL += " SET Status='Fail'";
+	sSQL += " ,Update_User='" + sUser + "'";
+	sSQL += " ,Update_Date='" + sDate + "'";
 	sSQL += " ,Signed_Hex='" + valueToSend + "'";
 	sSQL += " WHERE id=" + transactionRowId;
 	sSQLList.add(sSQL);
 }
+
+sSQL = "UPDATE cwallet_transaction_hash";
+sSQL += " SET Status='Sync'";
+sSQL += " ,Signed_Hex='" + valueToSend + "'";
+sSQL += " ,Update_User='" + sUser + "'";
+sSQL += " ,Update_Date='" + sDate + "'";
+sSQL += " WHERE Transaction_Id='" + transactionId + "'";
+sSQLList.add(sSQL);
+
 ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);
 
 obj.put("resultCode", sResultCode);

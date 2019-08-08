@@ -98,7 +98,11 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 
 //更新DB
 if (bOK){
-	sSQL = "UPDATE cwallet_bip_job_queue SET Status='Sync' WHERE id=" + s[0][0];
+	sSQL = "UPDATE cwallet_bip_job_queue";
+	sSQL += " SET Status='Sync'";
+	sSQL += " ,Update_User='" + sUser + "'";
+	sSQL += " ,Update_Date='" + sDate + "'";
+	sSQL += " WHERE id=" + s[0][0];
 	sSQLList.add(sSQL);
 	ht = updateDBData(sSQLList, gcDataSourceNameCMSIOT, false);
 }
