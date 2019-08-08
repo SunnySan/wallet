@@ -109,7 +109,7 @@
 			<div class="alert alert-info alert-dismissible"><!-- info window -->
 				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
 				<h4><i class="icon fa fa-info"></i> Information</h4>
-				<ul>
+				<ul id="ulInfo">
 					<li>Each block represents the balance of certain cryptocurrency of this wallet</li>
 					<li>You may create more cryptocurrencies to store in this wallet</li>
 					<!--<li>Click the cryptocurrency icon to view the transaction history of this address</li>-->
@@ -188,11 +188,52 @@
 
 <script>
 	$(document).ready(function () {
-		getCurrencyOfWallet();
+		getBtcExchangeRate();
+		//getCurrencyOfWallet();
 	})
 </script>
 
 <script>
+	function getBtcExchangeRate(){
+		if (!checkAppAndCard()) return;
+
+		var sUrl = "https://chain.so/api/v2/get_price/BTC/USD";
+		$.getJSON( sUrl, function(data) {
+			if (beEmpty(data.status) || data.status!="success"){
+				msgBox("Fail to get exchange rate of BTC");
+			}else{
+				$.each( data.data.prices, function(i, r) {
+					ExchangeRateBTC = parseFloat(r.price);
+				});
+				$('#ulInfo').append("<li>Current exchange rate of USD/BTC is around <span style='color:#FF0000;'>" + ExchangeRateBTC + "</span></li>");
+			}
+			getEthExchangeRate();
+		})
+		.fail(function(d) {
+			msgBox("Fail to get exchange rate of BTC");
+			getEthExchangeRate();
+		});	//$.getJSON( "./point.json", function(data) { 
+	}
+
+	function getEthExchangeRate(){
+		var sUrl = "https://chain.so/api/v2/get_price/ETH/USD";
+		$.getJSON( sUrl, function(data) {
+			if (beEmpty(data.status) || data.status!="success"){
+				msgBox("Fail to get exchange rate of ETH");
+			}else{
+				$.each( data.data.prices, function(i, r) {
+					ExchangeRateETH = parseFloat(r.price);
+				});
+				$('#ulInfo').append("<li>Current exchange rate of USD/ETH is around <span style='color:#FF0000;'>" + ExchangeRateETH + "</span></li>");
+			}
+			getCurrencyOfWallet();
+		})
+		.fail(function(d) {
+			msgBox("Fail to get exchange rate of BTC");
+			getCurrencyOfWallet();
+		});	//$.getJSON( "./point.json", function(data) { 
+	}
+
 	function checkAppAndCard(){
 		var appId = getLocalValue("SCWSysAppId");
 		var cardId = getLocalValue("SCWSysCardId");
@@ -206,8 +247,9 @@
 
 	var currencyData = null;
 	var currencyCount = 0;
+	var ExchangeRateBTC = 0.0;
+	var ExchangeRateETH = 0.0;
 	function getCurrencyOfWallet(){
-		if (!checkAppAndCard()) return;
 
 		var sData = "";
 		var s = "";
@@ -242,7 +284,7 @@
 						s += "	<div class='box box-widget widget-user'>";
 						s += "		<!-- Add the bg color to the header using any of the bg-* classes -->";
 						s += "		<div class='widget-user-header bg-aqua-active'>";
-						s += "			<h3 class='widget-user-username'>" + r.Currency_Name;
+						s += "			<h3 class='widget-user-username'>" + r.Currency_Name + "</h3><br><span id='usd" + r.id + "'></span>";
 						//s += "			<h5 class='widget-user-desc'>" + r.Currency_Id + "</h5>";
 						tmp = "";
 						if (r.Currency_Id=="BTC") tmp = "https://bitaps.com/" + r.Address;
@@ -332,6 +374,7 @@
 			}
 			$('#c' + recordId + '-1').text(data.data.confirmed_balance);
 			$('#c' + recordId + '-2').text(data.data.unconfirmed_balance);
+			getUsdValue(ExchangeRateBTC, data.data.confirmed_balance, recordId);
 		})
 		.fail(function(d) {
 			$('#c' + recordId + '-1').text(d.status + ':' + d.statusText);
@@ -355,12 +398,21 @@
 				return;
 			}
 			$('#c' + recordId + '-1').text((parseFloat(data.result)/1000000000000000000).toFixed(8));
+			getUsdValue(ExchangeRateETH, (parseFloat(data.result)/1000000000000000000).toFixed(8), recordId);
 		})
 		.fail(function(d) {
 			$('#c' + recordId + '-1').text(d.status + ':' + d.statusText);
 			$('#c' + recordId + '-1').css("text-decoration", "line-through");
 		});	//$.getJSON( "./point.json", function(data) { 
 
+	}
+	
+	function getUsdValue(rate, cryptocurrencyValue, recordId){
+		console.log("rate= " + rate);
+		console.log("cryptocurrencyValue= " + cryptocurrencyValue);
+		if (rate<=0.0 || cryptocurrencyValue<=0.0) return;
+		var f = parseFloat(rate*cryptocurrencyValue).toFixed(2);
+		$('#usd' + recordId).html("USD&nbsp;&#8776;&nbsp;" + f);
 	}
 	
 	function removeCurrencyFromSelectOption(){

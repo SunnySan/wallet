@@ -147,6 +147,9 @@
 <script src="bower_components/highcharts/modules/exporting.js"></script>
 <script src="bower_components/highcharts/modules/export-data.js"></script>
 
+<!-- Moment -->
+<script src="bower_components/moment/moment.js"></script>
+
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="js/jquery.blockUI.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
@@ -218,7 +221,7 @@
 	function getNewsData(){
 		
 		addLoadingOverlay('#boxETH');
-		var url = "http://127.0.0.1:8088/wallet/aGetNewsFeed.jsp";
+		var url = "aGetNewsFeed.jsp";
 		var sData = "";
 		
 		$.getJSON(
@@ -243,5 +246,9 @@
 		$(divId + ' .overlay').remove();
 	}
 
+	function formatDate(s){
+		var d = moment(d).format('MM-DD-YYYY');;
+		return d;
+	}
 </script>
 
