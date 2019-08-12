@@ -188,6 +188,8 @@
 
 <script>
 	$(document).ready(function () {
+		setLocalValue("SCWSysUsdBtcRate", "", 1);
+		setLocalValue("SCWSysUsdEthRate", "", 1);
 		getBtcExchangeRate();
 		//getCurrencyOfWallet();
 	})
@@ -205,6 +207,7 @@
 				$.each( data.data.prices, function(i, r) {
 					ExchangeRateBTC = parseFloat(r.price);
 				});
+				setLocalValue("SCWSysUsdBtcRate", ExchangeRateBTC, 1);
 				$('#ulInfo').append("<li>Current exchange rate of USD/BTC is around <span style='color:#FF0000;'>" + ExchangeRateBTC + "</span></li>");
 			}
 			getEthExchangeRate();
@@ -224,6 +227,7 @@
 				$.each( data.data.prices, function(i, r) {
 					ExchangeRateETH = parseFloat(r.price);
 				});
+				setLocalValue("SCWSysUsdEthRate", ExchangeRateETH, 1);
 				$('#ulInfo').append("<li>Current exchange rate of USD/ETH is around <span style='color:#FF0000;'>" + ExchangeRateETH + "</span></li>");
 			}
 			getCurrencyOfWallet();
@@ -408,8 +412,8 @@
 	}
 	
 	function getUsdValue(rate, cryptocurrencyValue, recordId){
-		console.log("rate= " + rate);
-		console.log("cryptocurrencyValue= " + cryptocurrencyValue);
+		//console.log("rate= " + rate);
+		//console.log("cryptocurrencyValue= " + cryptocurrencyValue);
 		if (rate<=0.0 || cryptocurrencyValue<=0.0) return;
 		var f = parseFloat(rate*cryptocurrencyValue).toFixed(2);
 		$('#usd' + recordId).html("USD&nbsp;&#8776;&nbsp;" + f);

@@ -147,8 +147,8 @@
 								-->
 								<!-- text input -->
 								<div class="form-group">
-									<label>Amount (ETH)</label>
-									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent">
+									<label>ETH Amount <span id="UsdLabel"></span><span id="UsdAmount"></span></label>
+									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent" onkeyup="calculateUsdAmount();">
 								</div>
 								<div class="row">
 									<!-- text input -->
@@ -298,8 +298,16 @@
 	var txHash = "";	//Transaction hex
 	var hasCamera = false;
 	var myCameras = null;
+
+	var ExchangeRateBTC = 0.0;
+	var ExchangeRateETH = 0.0;
 	
 	$(document).ready(function () {
+		ExchangeRateBTC = getLocalValue("SCWSysUsdBtcRate");
+		if (beEmpty(ExchangeRateBTC) || isNaN(ExchangeRateBTC) || ExchangeRateBTC<0) ExchangeRateBTC = 0.0;
+		ExchangeRateETH = getLocalValue("SCWSysUsdEthRate");
+		if (beEmpty(ExchangeRateETH) || isNaN(ExchangeRateETH) || ExchangeRateETH<0) ExchangeRateETH = 0.0;
+
 		checkAppCardWalletAndCurrency();
 		
 		$('.slider').slider({
@@ -391,6 +399,17 @@
 		});	//$.getJSON( "./point.json", function(data) { 
 
 	}	//function getMaxSpentableMoney(){
+
+	function calculateUsdAmount(){
+		var a = $('#amountToBeSent').val();
+		if (beEmpty(a)) a = "0.0";
+		a = parseFloat(a);
+		if (ExchangeRateETH<=0) return;
+		$('#UsdLabel').html("&nbsp;&nbsp;(USD&nbsp;&#8776;&nbsp;");
+		var u = ExchangeRateETH * a;
+		$('#UsdAmount').html(u.toFixed(2).toString() + ")");
+		return true;
+	}
 	
 	function doSend(){
 		$('#sig1').val('');

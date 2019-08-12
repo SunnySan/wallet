@@ -147,8 +147,8 @@
 								-->
 								<!-- text input -->
 								<div class="form-group">
-									<label>Amount (BTC)</label>
-									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent">
+								</div><label>BTC Amount <span id="UsdLabel"></span><span id="UsdAmount"></span></label>
+									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent" onkeyup="calculateUsdAmount();">
 								</div>
 								<div class="row">
 									<!-- text input -->
@@ -330,7 +330,15 @@
 	var hasCamera = false;
 	var myCameras = null;
 	
+	var ExchangeRateBTC = 0.0;
+	var ExchangeRateETH = 0.0;
+	
 	$(document).ready(function () {
+		ExchangeRateBTC = getLocalValue("SCWSysUsdBtcRate");
+		if (beEmpty(ExchangeRateBTC) || isNaN(ExchangeRateBTC) || ExchangeRateBTC<0) ExchangeRateBTC = 0.0;
+		ExchangeRateETH = getLocalValue("SCWSysUsdEthRate");
+		if (beEmpty(ExchangeRateETH) || isNaN(ExchangeRateETH) || ExchangeRateETH<0) ExchangeRateETH = 0.0;
+
 		checkAppCardWalletAndCurrency();
 		if (currencyId=="BTC") feeBtcSatPerByte = getDefaultTransactionFeeBtcMainnet();
 		else feeBtcSatPerByte = getDefaultTransactionFeeBtcTestnet();
@@ -436,6 +444,17 @@
 		});	//$.getJSON( "./point.json", function(data) { 
 
 	}	//function getUnspentTransaction(){
+	
+	function calculateUsdAmount(){
+		var a = $('#amountToBeSent').val();
+		if (beEmpty(a)) a = "0.0";
+		a = parseFloat(a);
+		if (ExchangeRateBTC<=0) return;
+		$('#UsdLabel').html("&nbsp;&nbsp;(USD&nbsp;&#8776;&nbsp;");
+		var u = ExchangeRateBTC * a;
+		$('#UsdAmount').html(u.toFixed(2).toString() + ")");
+		return true;
+	}
 	
 	function doSend(){
 		$('#sig1').val('');
