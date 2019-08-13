@@ -49,6 +49,7 @@ String cardId		= nullToString(request.getParameter("cardId"), "");
 String action		= nullToString(request.getParameter("action"), "");	//C=Create, R=Rename, D=Delete, I=Import, U=Upload wallet, A=Add currency to wallet
 String data			= nullToString(request.getParameter("data"), "");
 
+String tmp			= "";
 if (beEmpty(cardId) || beEmpty(action) || beEmpty(data) || data.length()<2){
 	writeLog("debug", "BIP wallet manipulation parameter not found for Card_Id= " + cardId + ", action=" + action + ", data=" + data);
 	obj.put("resultCode", gcResultCodeParametersNotEnough);
@@ -57,7 +58,13 @@ if (beEmpty(cardId) || beEmpty(action) || beEmpty(data) || data.length()<2){
 	out.flush();
 	return;
 }else{
-	writeLog("debug", "BIP wallet manipulation for Card_Id= " + cardId + ", action=" + action + ", data=" + data);
+	if (action.equals("C")) tmp = "Create wallet";
+	if (action.equals("R")) tmp = "Rename wallet";
+	if (action.equals("D")) tmp = "Delete wallet";
+	if (action.equals("I")) tmp = "Import wallet";
+	if (action.equals("U")) tmp = "Upload wallet";
+	if (action.equals("A")) tmp = "Add currency to wallet (child key)";
+	writeLog("debug", "BIP wallet manipulation for Card_Id= " + cardId + ", action=" + action + ", " + tmp + ", data=" + data);
 }
 
 Hashtable	ht					= new Hashtable();
@@ -105,6 +112,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	s = (String[][])ht.get("Data");
 	ss = s[0][0];
 	if (action.equals("C") || action.equals("I") || action.equals("R")){	//Create, Import, Rename Wallet
+		walletName = new String(hex2Byte(walletName), "UTF-8");
 		sSQL = "UPDATE cwallet_card_wallet";
 		sSQL += " SET Wallet_Name='" + walletName + "'";
 		sSQL += " ,Update_User='" + sUser + "'";
@@ -198,6 +206,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	
 }else if (sResultCode.equals(gcResultCodeNoDataFound)){	//沒資料
 	if (action.equals("C") || action.equals("I") || action.equals("R")){	//Create, Import, Rename Wallet
+		walletName = new String(hex2Byte(walletName), "UTF-8");
 		sSQL = "INSERT INTO cwallet_card_wallet (Create_User, Create_Date, Update_User, Update_Date, Card_Id, Wallet_Id, Wallet_Name, Status) VALUES (";
 		sSQL += "'" + sUser + "',";
 		sSQL += "'" + sDate + "',";
@@ -268,6 +277,7 @@ if (action.equals("U")){	//Upload wallet，格式為 Card ID / 32 / ‘0’ ‘3
 				return;
 			}
 			walletName = data.substring(j+2, j+2+l);	//walletName
+			walletName = new String(hex2Byte(walletName), "UTF-8");
 			k += 4+l;	//walletId 2 bytes, walletName長度 2bytes, walletName l bytes
 			sSQL = "INSERT INTO cwallet_card_wallet (Create_User, Create_Date, Update_User, Update_Date, Card_Id, Wallet_Id, Wallet_Name, Status) VALUES (";
 			sSQL += "'" + sUser + "',";
