@@ -204,7 +204,8 @@ if (notEmpty(sJsp)){	//執行相對應的作業
 		sResponse = buf.toString();	//取得Line回應值
 		bOK = true;
 	}catch (IOException e){ 
-		sResponse = e.toString();
+		//sResponse = e.toString();
+		sResponse = "Exception when send message to BIP handler, please try again later.";
 		writeLog("error", "Exception when send message to BIP handler: " + e.toString());
 		sResponse = "AABBDDA20000010101" + Integer.toHexString(string2Hex(sResponse, "UTF8").length()) + "04" + string2Hex(sResponse, "UTF8");
 		writeLog("error", "APDU Response(Error)= " + sResponse);

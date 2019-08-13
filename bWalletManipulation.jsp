@@ -238,7 +238,17 @@ if (action.equals("D") || action.equals("U")){	//D=Delete Wallet, U=Upload walle
 }
 
 if (action.equals("U")){	//Upload wallet，格式為 Card ID / 32 / ‘0’ ‘3’ / 01 08 “Jonathan” 02 03 “Ken” 03 07 “Charles”
-	int walletCount = Integer.parseInt(data.substring(0, 2), 16);	//walletCount就是上面的‘0’ ‘3’
+	int walletCount = 0;
+	try{
+		walletCount = Integer.parseInt(data.substring(0, 2), 16);	//walletCount就是上面的‘0’ ‘3’
+	}catch (Exception e){
+		writeLog("error", "BIP wallet manipulation failed, walletCount= " + data.substring(0, 2) + ", is not a number");
+		obj.put("resultCode", gcResultCodeParametersValidationError);
+		obj.put("resultText", gcResultTextParametersValidationError);
+		out.print(obj);
+		out.flush();
+		return;
+	}
 	writeLog("debug", "BIP upload wallet Card_Id= " + cardId + ", walletId= " + walletId + ", walletCount=" + String.valueOf(walletCount));
 	if (walletCount>0){
 		j = 0;
@@ -247,7 +257,16 @@ if (action.equals("U")){	//Upload wallet，格式為 Card ID / 32 / ‘0’ ‘3
 			j = 2+k;	//walletId起始位置, 2是walletCount佔掉的 2 bytes
 			walletId = data.substring(j, j+2);
 			j=2+k+2;	//walletName長度起始位置
-			l = Integer.parseInt(data.substring(j, j+2), 16);	//walletName長度
+			try{
+				l = Integer.parseInt(data.substring(j, j+2), 16);	//walletName長度
+			}catch (Exception e){
+				writeLog("error", "BIP wallet manipulation failed, wallet name length= " + data.substring(j, j+2) + ", is not a number");
+				obj.put("resultCode", gcResultCodeParametersValidationError);
+				obj.put("resultText", gcResultTextParametersValidationError);
+				out.print(obj);
+				out.flush();
+				return;
+			}
 			walletName = data.substring(j+2, j+2+l);	//walletName
 			k += 4+l;	//walletId 2 bytes, walletName長度 2bytes, walletName l bytes
 			sSQL = "INSERT INTO cwallet_card_wallet (Create_User, Create_Date, Update_User, Update_Date, Card_Id, Wallet_Id, Wallet_Name, Status) VALUES (";
