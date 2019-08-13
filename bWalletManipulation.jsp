@@ -112,7 +112,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	s = (String[][])ht.get("Data");
 	ss = s[0][0];
 	if (action.equals("C") || action.equals("I") || action.equals("R")){	//Create, Import, Rename Wallet
-		walletName = new String(hex2Byte(walletName), "UTF-8");
+		walletName = new String(hex2Byte(walletName), "UTF-16");
 		sSQL = "UPDATE cwallet_card_wallet";
 		sSQL += " SET Wallet_Name='" + walletName + "'";
 		sSQL += " ,Update_User='" + sUser + "'";
@@ -206,7 +206,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	
 }else if (sResultCode.equals(gcResultCodeNoDataFound)){	//沒資料
 	if (action.equals("C") || action.equals("I") || action.equals("R")){	//Create, Import, Rename Wallet
-		walletName = new String(hex2Byte(walletName), "UTF-8");
+		walletName = new String(hex2Byte(walletName), "UTF-16");
 		sSQL = "INSERT INTO cwallet_card_wallet (Create_User, Create_Date, Update_User, Update_Date, Card_Id, Wallet_Id, Wallet_Name, Status) VALUES (";
 		sSQL += "'" + sUser + "',";
 		sSQL += "'" + sDate + "',";
@@ -277,7 +277,7 @@ if (action.equals("U")){	//Upload wallet，格式為 Card ID / 32 / ‘0’ ‘3
 				return;
 			}
 			walletName = data.substring(j+2, j+2+l);	//walletName
-			walletName = new String(hex2Byte(walletName), "UTF-8");
+			walletName = new String(hex2Byte(walletName), "UTF-16");
 			k += 4+l;	//walletId 2 bytes, walletName長度 2bytes, walletName l bytes
 			sSQL = "INSERT INTO cwallet_card_wallet (Create_User, Create_Date, Update_User, Update_Date, Card_Id, Wallet_Id, Wallet_Name, Status) VALUES (";
 			sSQL += "'" + sUser + "',";
