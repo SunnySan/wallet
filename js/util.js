@@ -235,6 +235,8 @@ function clearCookie(){	//清除 cookie 中的登入資料
 	setLocalValue('SCWSysCurrencyRowId', '');
 	setLocalValue('SCWSysWalletId', '');
 	setLocalValue('SCWSysWalletName', '');
+	setLocalValue('SCWSysUsdBtcRate', '');
+	setLocalValue('SCWSysUsdEthRate', '');
 	return true;
 }
 

@@ -147,7 +147,7 @@
 								-->
 								<!-- text input -->
 								<div class="form-group">
-								</div><label>BTC Amount <span id="UsdLabel"></span><span id="UsdAmount"></span></label>
+								<label>BTC Amount <span id="UsdLabel"></span><span id="UsdAmount"></span></label>
 									<input type="text" id="amountToBeSent" class="form-control" placeholder="Amount to be sent" onkeyup="calculateUsdAmount();">
 								</div>
 								<div class="row">
@@ -403,6 +403,7 @@
 		currencyName = getLocalValue("SCWSysCurrencyName");
 		currencyPublicKey = getLocalValue("SCWSysCurrencyPublicKey");
 		currencyAddress = getLocalValue("SCWSysCurrencyAddress");
+		alert(currencyAddress);
 		if (beEmpty(appId) || beEmpty(cardId) || beEmpty(walletId) || beEmpty(walletName) || beEmpty(currencyRowId) || beEmpty(currencyId) || beEmpty(currencyName) || beEmpty(currencyPublicKey) || beEmpty(currencyAddress)){
 			msgBox("Information not enough, please ensure you had paired this application with your card, select a wallet, and click [Send] button on the <a href='CheckBalance.html'>Check Balance page</a>!", function(){location.href="index.html";});
 			return;
