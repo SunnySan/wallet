@@ -64,6 +64,19 @@ function trim(stringToTrim){
 	return stringToTrim.replace(/^\s+|\s+$/g,"");
 }
 
+/**********字串轉成hex**********/
+String.prototype.hexEncode = function(){
+    var hex, i;
+
+    var result = "";
+    for (i=0; i<this.length; i++) {
+        hex = this.charCodeAt(i).toString(16);
+        result += ("000"+hex).slice(-4);
+    }
+
+    return result
+}
+
 /**********判斷字串開頭是否為指定的字**********/
 String.prototype.startsWith = function(prefix)
 {
