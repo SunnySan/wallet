@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -200,13 +200,13 @@
 		if (!checkAppAndCard()) return;
 
 		var sUrl = "https://chain.so/api/v2/get_price/BTC/USD";
+		sUrl = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+		sUrl = "aProxy.jsp?u=" + stringToHex(sUrl);
 		$.getJSON( sUrl, function(data) {
-			if (beEmpty(data.status) || data.status!="success"){
+			if (beEmpty(data.bitcoin.usd)){
 				msgBox("Fail to get exchange rate of BTC");
 			}else{
-				$.each( data.data.prices, function(i, r) {
-					ExchangeRateBTC = parseFloat(r.price);
-				});
+				ExchangeRateBTC = parseFloat(data.bitcoin.usd);
 				setLocalValue("SCWSysUsdBtcRate", ExchangeRateBTC, 1);
 				$('#ulInfo').append("<li>Current exchange rate of USD/BTC is around <span style='color:#FF0000;'>" + ExchangeRateBTC + "</span></li>");
 			}
@@ -220,13 +220,13 @@
 
 	function getEthExchangeRate(){
 		var sUrl = "https://chain.so/api/v2/get_price/ETH/USD";
+		sUrl = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd";
+		sUrl = "aProxy.jsp?u=" + stringToHex(sUrl);
 		$.getJSON( sUrl, function(data) {
-			if (beEmpty(data.status) || data.status!="success"){
+			if (beEmpty(data.ethereum.usd)){
 				msgBox("Fail to get exchange rate of ETH");
 			}else{
-				$.each( data.data.prices, function(i, r) {
-					ExchangeRateETH = parseFloat(r.price);
-				});
+				ExchangeRateETH = parseFloat(data.ethereum.usd);
 				setLocalValue("SCWSysUsdEthRate", ExchangeRateETH, 1);
 				$('#ulInfo').append("<li>Current exchange rate of USD/ETH is around <span style='color:#FF0000;'>" + ExchangeRateETH + "</span></li>");
 			}
@@ -370,7 +370,24 @@
 	}
 	
 	function getBtcBalance(currency, Address, recordId){
-		var sUrl = "https://chain.so/api/v2/get_address_balance/" + currency + "/" + Address;
+		//var sUrl = "https://chain.so/api/v2/get_address_balance/" + currency + "/" + Address;
+		var sUrl = "https://block.io/api/v2/get_address_balance/" + currency + "/" + Address;
+		var site = (currency=="BTCTEST"?"testnet.":"");
+		sUrl = "https://" + site + "blockchain.info/balance?active=" + Address;
+		sUrl = "aProxy.jsp?u=" + stringToHex(sUrl);
+		getDataFromServer(sUrl, "", "json", function(data){
+			//alert(data[Address].final_balance/100000000);
+			if (beEmpty(data[Address].final_balance)){
+				msgBox("Fail to get balance for " + currency);
+				return;
+			}
+			$('#c' + recordId + '-1').text(data[Address].final_balance/100000000);
+			//$('#c' + recordId + '-2').text(data.data.unconfirmed_balance);
+			getUsdValue(ExchangeRateBTC, data[Address].final_balance/100000000, recordId);
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+
+		/*
 		$.getJSON( sUrl, function(data) {
 			if (beEmpty(data.status) || data.status!="success"){
 				msgBox("Fail to get balance for " + currency);
@@ -386,6 +403,7 @@
 			$('#c' + recordId + '-2').text(d.status + ':' + d.statusText);
 			$('#c' + recordId + '-2').css("text-decoration", "line-through");
 		});	//$.getJSON( "./point.json", function(data) { 
+		*/
 
 	}
 
@@ -395,7 +413,18 @@
 		if (!Address.startsWith("0x")) Address = "0x" + Address;
 		//https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken
 		sUrl = "https://" + sUrl + ".etherscan.io/api?module=account&action=balance&address=" + Address + "&tag=latest&apikey=" + myApiKey;
-		
+		sUrl = "aProxy.jsp?u=" + stringToHex(sUrl);
+		getDataFromServer(sUrl, "", "json", function(data){
+			if (beEmpty(data.status) || data.status!="1"){
+				msgBox("Fail to get balance for " + currency);
+				return;
+			}
+			$('#c' + recordId + '-1').text((parseFloat(data.result)/1000000000000000000).toFixed(8));
+			getUsdValue(ExchangeRateETH, (parseFloat(data.result)/1000000000000000000).toFixed(8), recordId);
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+
+		/*		
 		$.getJSON( sUrl, function(data) {
 			if (beEmpty(data.status) || data.status!="1"){
 				msgBox("Fail to get balance for " + currency);
@@ -408,6 +437,7 @@
 			$('#c' + recordId + '-1').text(d.status + ':' + d.statusText);
 			$('#c' + recordId + '-1').css("text-decoration", "line-through");
 		});	//$.getJSON( "./point.json", function(data) { 
+		*/
 
 	}
 	
@@ -512,4 +542,3 @@
 		}
 	}
 </script>
-

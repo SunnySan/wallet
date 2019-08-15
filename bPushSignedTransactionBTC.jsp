@@ -208,12 +208,21 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	valueToSend = byte2Hex(tx.bitcoinSerialize());
 
 	sUrl = "";
+	/*
 	if (currencyId.equals("BTC")){
 		sUrl = "https://chain.so/api/v2/send_tx/BTC";
 	}else{
 		sUrl = "https://chain.so/api/v2/send_tx/BTCTEST";
 	}
-	sData = "tx_hex=" + valueToSend;
+	*/
+	if (currencyId.equals("BTC")){
+		sUrl = "https://blockchain.info/pushtx";
+	}else{
+		sUrl = "https://testnet.blockchain.info/pushtx";
+	}
+	
+	//sData = "tx_hex=" + valueToSend;
+	sData = "tx=" + valueToSend;
 	
 	try
 	{
@@ -254,7 +263,13 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 		}
 		in.close();
 		sResponse = buf.toString();	//取得回應值
-		if (notEmpty(sResponse)){
+		writeLog("debug", "sResponse: " + sResponse);
+		if (notEmpty(sResponse) && sResponse.equals("Transaction Submitted")){
+			sResultCode = gcResultCodeSuccess;
+			sResultText = gcResultTextSuccess;
+			txid = sResponse;
+			bOK = true;
+			/*
 			//解析JSON參數
 			JSONParser parser = new JSONParser();
 			Object objBody = parser.parse(sResponse);
@@ -271,6 +286,7 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 				bOK = true;
 				writeLog("info", sUrl + " replies success.");
 			}
+			*/
 		}else{
 			writeLog("error", sUrl + " doesn't reply anything.");
 			sResultCode = gcResultCodeUnknownError;

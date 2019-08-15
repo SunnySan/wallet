@@ -64,12 +64,22 @@ String		sUrl				= "";
 String		sData				= "";
 String		sResponse			= "";
 
+/*
 if (coinType.equals("BTC")){
 	sUrl = "https://chain.so/api/v2/send_tx/BTC";
 }else{
 	sUrl = "https://chain.so/api/v2/send_tx/BTCTEST";
 }
-sData = "tx_hex=" + txHex;
+*/
+
+if (coinType.equals("BTC")){
+	sUrl = "https://blockchain.info/pushtx";
+}else{
+	sUrl = "https://testnet.blockchain.info/pushtx";
+}
+
+//sData = "tx_hex=" + txHex;
+sData = "tx=" + txHex;
 
 try
 {
@@ -110,7 +120,11 @@ try
 	}
 	in.close();
 	sResponse = buf.toString();	//取得回應值
-	if (notEmpty(sResponse)){
+	writeLog("debug", "sResponse: " + sResponse);
+	if (notEmpty(sResponse) && sResponse.equals("Transaction Submitted")){
+		sResultCode = gcResultCodeSuccess;
+		sResultText = gcResultTextSuccess;
+		/*
 		//解析JSON參數
 		JSONParser parser = new JSONParser();
 		Object objBody = parser.parse(sResponse);
@@ -124,6 +138,7 @@ try
 			jsonObjectBody = (JSONObject) objBody;
 			obj.put("txid", (String) jsonObjectBody.get("txid"));
 		}
+		*/
 	}else{
 		sResultCode = gcResultCodeUnknownError;
 		sResultText = gcResultTextUnknownError;

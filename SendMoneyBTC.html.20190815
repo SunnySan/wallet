@@ -416,27 +416,21 @@
 
 	function getUnspentTransaction(){
 		var sUrl = "";
-		/*
 		if (currencyId == "BTCTEST")	sUrl = "https://chain.so/api/v2/get_tx_unspent/BTCTEST/" + currencyAddress;
 		if (currencyId == "BTC")		sUrl = "https://chain.so/api/v2/get_tx_unspent/BTC/" + currencyAddress;
-		*/
-		if (currencyId == "BTCTEST")	sUrl = "https://testnet.blockchain.info/unspent?active=" + currencyAddress;
-		if (currencyId == "BTC")		sUrl = "https://blockchain.info/unspent?active=" + currencyAddress;
 		if (currencyId == "BTCTEST" || currencyId == "BTC") minFee = 0.00007425;	//1 input + 1 output
 		if (currencyId == "BTC" || currencyId == "BTC") minFee = 0.00007425;	//1 input + 1 output
 		//if (currencyId == "BTCTEST" || currencyId == "BTC") minFee = 0.00012276;	//2 input + 2 output
 
-		sUrl = "aProxy.jsp?u=" + stringToHex(sUrl);
-
 		$.getJSON( sUrl, function(data) {
 			totalUnspent = 0.0;
-			if (beEmpty(data.unspent_outputs)){
+			if (beEmpty(data.status) || data.status!="success"){
 				msgBox("Fail to get unspent data for " + currencyId + ": " + currencyAddress);
 				return;
 			}
-			unspentTransaction = data;
-			$.each( data.unspent_outputs, function(i, r) {
-				totalUnspent += parseFloat(r.value/100000000);
+			unspentTransaction = data.data;
+			$.each( data.data.txs, function(i, r) {
+				totalUnspent += parseFloat(r.value);
 			});	//$.each( data.data.txs, function(i, r) {
 			if (totalUnspent<minFee){
 				msgBox("No available money.");
@@ -504,25 +498,25 @@
 		if (beEmpty($('#transactionFee').val()) || $('#transactionFee').val()=="0") autoCalculateFee = true;
 		else feeBtcSatPerByte = $('#transactionFee').val();
 
-		$.each(unspentTransaction.unspent_outputs, function(i,o){
+		$.each(unspentTransaction.txs, function(i,o){
 			if (autoCalculateFee){
 				feeBtcSatPerByte = (i+1)*5;
 				$('#transactionFee').val(feeBtcSatPerByte.toString());
 				$( '.slider' ).slider( "value", feeBtcSatPerByte );
 			}
 			
-			if(!(o.tx_hash_big_endian).match(/^[a-f0-9]+$/i)){
+			if(!(o.txid).match(/^[a-f0-9]+$/i)){
 				hasError = true;
-			} else if((!(o.script).match(/^[a-f0-9]+$/i)) && $(".txIdScript",o).val()!=""){
+			} else if((!(o.script_hex).match(/^[a-f0-9]+$/i)) && $(".txIdScript",o).val()!=""){
 				hasError = true;
-			} else if (!(o.tx_output_n).toString().match(/^[0-9]+$/i)){
+			} else if (!(o.output_no).toString().match(/^[0-9]+$/i)){
 				hasError = true;
 			}
 			//if (isDebugMode()) console.log("0 estimatedTxSize= " + estimatedTxSize.toString());
 			if(!hasError){
 				var seq = null;
 
-				var currentScript = o.script;
+				var currentScript = o.script_hex;
 				if (currentScript.match(/^76a914[0-9a-f]{40}88ac$/)) {
 					estimatedTxSize += 147;
 					//if (isDebugMode()) console.log("1 estimatedTxSize= " + estimatedTxSize.toString());
@@ -538,9 +532,9 @@
 					//if (isDebugMode()) console.log("3 estimatedTxSize= " + estimatedTxSize.toString());
 				}
 				usedInputCount ++;
-				tx.addinput(o.tx_hash_big_endian, (o.tx_output_n).toString(), o.script, seq);
-				addedMoney += parseFloat(o.value/100000000);
-				if (isDebugMode()) console.log(i.toString() + ", o.tx_hash_big_endian= " + o.tx_hash_big_endian + ", unspent money= " + (o.value/100000000) + ", total added money=" + addedMoney);
+				tx.addinput(o.txid, (o.output_no).toString(), o.script_hex, seq);
+				addedMoney += parseFloat(o.value);
+				if (isDebugMode()) console.log(i.toString() + ", o.txid= " + o.txid + ", unspent money= " + o.value + ", total added money=" + addedMoney);
 				totalFee = (estimatedTxSize + getBeneficiaryOutputDataSize())*feeBtcSatPerByte/100000000;
 				//如果你的輸出(outputs)小於0.01BTC(包括你錢包內部的資金變動)的話，你必須要支付0.0001的手續費，即使是你自己轉給你自己。
 				//參考 https://kknews.cc/finance/y65myrn.html
