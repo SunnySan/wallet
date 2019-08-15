@@ -233,15 +233,26 @@ if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 	return;
 }	//if (sResultCode.equals(gcResultCodeSuccess)){	//有資料
 
-if (action.equals("D") || action.equals("U")){	//D=Delete Wallet, U=Upload wallet
+if (action.equals("D")){	//D=Delete Wallet
 	sSQL = "DELETE FROM cwallet_card_wallet";
 	sSQL += " WHERE Card_Id='" + cardId + "'";
-	//sSQL += " AND Wallet_Id='" + walletId + "'";
+	sSQL += " AND Wallet_Id='" + walletId + "'";
 	sSQLList.add(sSQL);
 	//writeLog("debug", "Exec SQL= " + sSQL);
 	sSQL = "DELETE FROM cwallet_wallet_currency";
 	sSQL += " WHERE Card_Id='" + cardId + "'";
-	//sSQL += " AND Wallet_Id='" + walletId + "'";
+	sSQL += " AND Wallet_Id='" + walletId + "'";
+	sSQLList.add(sSQL);
+	//writeLog("debug", "Exec SQL= " + sSQL);
+}
+
+if (action.equals("U")){	//U=Upload wallet
+	sSQL = "DELETE FROM cwallet_card_wallet";
+	sSQL += " WHERE Card_Id='" + cardId + "'";
+	sSQLList.add(sSQL);
+	//writeLog("debug", "Exec SQL= " + sSQL);
+	sSQL = "DELETE FROM cwallet_wallet_currency";
+	sSQL += " WHERE Card_Id='" + cardId + "'";
 	sSQLList.add(sSQL);
 	//writeLog("debug", "Exec SQL= " + sSQL);
 }
