@@ -197,7 +197,9 @@ out.flush();
 		String nextAction = "50";
 		//if ((hashIndex.equals("0") && iSignatureCount==1) || (!hashIndex.equals("0") && Integer.parseInt(hashIndex)==iSignatureCount)) nextAction = "51";
 		nextAction = "51";
-		sApdu = "AABBDD" + (hashIndex.equals("0")?"50":"51") + nextAction + "00" + "01" + (hashIndex.equals("0")?"01":MakesUpZero(Integer.toHexString(Integer.parseInt(hashIndex)), 2)) + MakesUpZero(Integer.toHexString(iSignatureCount), 2) + MakesUpZero(Integer.toHexString((sApdu+hashToBeSigned).length()/2+1), 2) + MakesUpZero(walletId, 2) + sApdu + hashToBeSigned;
+		//sApdu = "AABBDD" + (hashIndex.equals("0")?"50":"51") + nextAction + "00" + "01" + (hashIndex.equals("0")?"01":MakesUpZero(Integer.toHexString(Integer.parseInt(hashIndex)), 2)) + MakesUpZero(Integer.toHexString(iSignatureCount), 2) + MakesUpZero(Integer.toHexString((sApdu+hashToBeSigned).length()/2+1), 2) + MakesUpZero(walletId, 2) + sApdu + hashToBeSigned;
+		//配合Ken的修改
+		sApdu = "AABBDD" + "51" + "00" + "00" + "01" + (hashIndex.equals("0")?"01":MakesUpZero(Integer.toHexString(Integer.parseInt(hashIndex)), 2)) + MakesUpZero(Integer.toHexString(iSignatureCount), 2) + MakesUpZero(Integer.toHexString((sApdu+hashToBeSigned).length()/2+1), 2) + MakesUpZero(walletId, 2) + sApdu + hashToBeSigned;
 		return sApdu;
 	}
 	
