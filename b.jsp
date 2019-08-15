@@ -131,7 +131,7 @@ if (cmd.equals("51")){	//Sign - Signature
 			//sJsp = "bPushSignedTransactionBTC.jsp";
 			sJsp = "bGetHashToBeSigned.jsp";
 			sData = "cardId=" + cardId;
-			sData += "&hashIndex=" + Integer.parseInt(content.substring(0, 2), 16);	//把HEX字串的值轉成10進位的int
+			sData += "&hashIndex=" + Integer.parseInt(content.substring(2, 4), 16);	//把HEX字串的值轉成10進位的int
 			sData += "&signature=" + content.substring(4);
 		}else{
 			sJsp = "bPushSignedTransactionETH.jsp";

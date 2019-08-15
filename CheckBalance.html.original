@@ -190,8 +190,8 @@
 	$(document).ready(function () {
 		setLocalValue("SCWSysUsdBtcRate", "", 1);
 		setLocalValue("SCWSysUsdEthRate", "", 1);
-		//getBtcExchangeRate();
-		getCurrencyOfWallet();
+		getBtcExchangeRate();
+		//getCurrencyOfWallet();
 	})
 </script>
 
@@ -370,24 +370,7 @@
 	}
 	
 	function getBtcBalance(currency, Address, recordId){
-		//var sUrl = "https://chain.so/api/v2/get_address_balance/" + currency + "/" + Address;
-		var sUrl = "https://block.io/api/v2/get_address_balance/" + currency + "/" + Address;
-		var site = (currency=="BTCTEST"?"testnet.":"");
-		sUrl = "https://" + site + "blockchain.info/balance?active=" + Address;
-
-		getDataFromServer("aProxy.jsp", "u=" + sUrl.hexEncode(), "json", function(data){
-			console.log(JSON.Stringify(data));
-			if (beEmpty(data.status) || data.status!="success"){
-				msgBox("Fail to get balance for " + currency);
-				return;
-			}
-			$('#c' + recordId + '-1').text(data.data.confirmed_balance);
-			$('#c' + recordId + '-2').text(data.data.unconfirmed_balance);
-			getUsdValue(ExchangeRateBTC, data.data.confirmed_balance, recordId);
-
-		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
-
-		/*
+		var sUrl = "https://chain.so/api/v2/get_address_balance/" + currency + "/" + Address;
 		$.getJSON( sUrl, function(data) {
 			if (beEmpty(data.status) || data.status!="success"){
 				msgBox("Fail to get balance for " + currency);
@@ -403,7 +386,6 @@
 			$('#c' + recordId + '-2').text(d.status + ':' + d.statusText);
 			$('#c' + recordId + '-2').css("text-decoration", "line-through");
 		});	//$.getJSON( "./point.json", function(data) { 
-		*/
 
 	}
 
@@ -413,18 +395,7 @@
 		if (!Address.startsWith("0x")) Address = "0x" + Address;
 		//https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken
 		sUrl = "https://" + sUrl + ".etherscan.io/api?module=account&action=balance&address=" + Address + "&tag=latest&apikey=" + myApiKey;
-console.log("u=" + encodeURI(sUrl));
-		getDataFromServer("aProxy.jsp", "u=" + encodeURI(sUrl), "json", function(data){
-			if (beEmpty(data.status) || data.status!="1"){
-				msgBox("Fail to get balance for " + currency);
-				return;
-			}
-			$('#c' + recordId + '-1').text((parseFloat(data.result)/1000000000000000000).toFixed(8));
-			getUsdValue(ExchangeRateETH, (parseFloat(data.result)/1000000000000000000).toFixed(8), recordId);
-
-		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
-
-		/*		
+		
 		$.getJSON( sUrl, function(data) {
 			if (beEmpty(data.status) || data.status!="1"){
 				msgBox("Fail to get balance for " + currency);
@@ -437,7 +408,6 @@ console.log("u=" + encodeURI(sUrl));
 			$('#c' + recordId + '-1').text(d.status + ':' + d.statusText);
 			$('#c' + recordId + '-1').css("text-decoration", "line-through");
 		});	//$.getJSON( "./point.json", function(data) { 
-		*/
 
 	}
 	

@@ -161,7 +161,9 @@ ss = "Do you want to send  " + currencyId + " " + amount + " to " + toAddress + 
 ss = string2Hex(ss, "UTF8");
 //sApdu = "AABBDD310000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+3), 2) + "50" + MakesUpZero(walletId, 2) + MakesUpZero(Integer.toHexString(ss.length()/2), 2) + ss;
 //UTF-8 傳 04 UCS2 傳08
-sApdu = "AABBDD315000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+2), 2) + MakesUpZero(walletId, 2) + "04" + ss;
+//sApdu = "AABBDD315000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+2), 2) + MakesUpZero(walletId, 2) + "04" + ss;
+//配合Ken的修改
+sApdu = "AABBDD500000010101" + MakesUpZero(Integer.toHexString(ss.length()/2+2), 2) + MakesUpZero(walletId, 2) + "04" + ss;
 
 sSQL = "INSERT INTO cwallet_bip_job_queue (Create_User, Create_Date, Update_User, Update_Date, Job_Id, Job_Description, Job_Type, App_Id, Card_Id, Transaction_Id, Wallet_Id, Wallet_Name, Currency_Id, CMD, APDU, Status) VALUES (";
 sSQL += "'" + sUser + "',";

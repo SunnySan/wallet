@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -192,6 +192,7 @@
 		setLocalValue("SCWSysUsdEthRate", "", 1);
 		//getBtcExchangeRate();
 		getCurrencyOfWallet();
+		//getCurrencyOfWallet();
 	})
 </script>
 
@@ -199,7 +200,24 @@
 	function getBtcExchangeRate(){
 		if (!checkAppAndCard()) return;
 
-		var sUrl = "https://chain.so/api/v2/get_price/BTC/USD";
+		var sUrl = "http://chain.so/api/v2/get_price/BTC/USD";
+		console.log(encodeURI(sUrl));
+
+		getDataFromServer("aProxy.jsp", "u=" + encodeURI(sUrl), "json", function(data){
+			if (beEmpty(data.status) || data.status!="success"){
+				msgBox("Fail to get exchange rate of BTC");
+			}else{
+				$.each( data.data.prices, function(i, r) {
+					ExchangeRateBTC = parseFloat(r.price);
+				});
+				setLocalValue("SCWSysUsdBtcRate", ExchangeRateBTC, 1);
+				$('#ulInfo').append("<li>Current exchange rate of USD/BTC is around <span style='color:#FF0000;'>" + ExchangeRateBTC + "</span></li>");
+			}
+			getEthExchangeRate();
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+
+		/*
 		$.getJSON( sUrl, function(data) {
 			if (beEmpty(data.status) || data.status!="success"){
 				msgBox("Fail to get exchange rate of BTC");
@@ -216,10 +234,27 @@
 			msgBox("Fail to get exchange rate of BTC");
 			getEthExchangeRate();
 		});	//$.getJSON( "./point.json", function(data) { 
+		*/
 	}
 
 	function getEthExchangeRate(){
 		var sUrl = "https://chain.so/api/v2/get_price/ETH/USD";
+
+		getDataFromServer("aProxy.jsp", "u=" + encodeURI(sUrl), "json", function(data){
+			if (beEmpty(data.status) || data.status!="success"){
+				msgBox("Fail to get exchange rate of ETH");
+			}else{
+				$.each( data.data.prices, function(i, r) {
+					ExchangeRateETH = parseFloat(r.price);
+				});
+				setLocalValue("SCWSysUsdEthRate", ExchangeRateETH, 1);
+				$('#ulInfo').append("<li>Current exchange rate of USD/ETH is around <span style='color:#FF0000;'>" + ExchangeRateETH + "</span></li>");
+			}
+			getCurrencyOfWallet();
+
+		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+
+		/*
 		$.getJSON( sUrl, function(data) {
 			if (beEmpty(data.status) || data.status!="success"){
 				msgBox("Fail to get exchange rate of ETH");
@@ -236,6 +271,7 @@
 			msgBox("Fail to get exchange rate of BTC");
 			getCurrencyOfWallet();
 		});	//$.getJSON( "./point.json", function(data) { 
+		*/
 	}
 
 	function checkAppAndCard(){
@@ -370,13 +406,9 @@
 	}
 	
 	function getBtcBalance(currency, Address, recordId){
-		//var sUrl = "https://chain.so/api/v2/get_address_balance/" + currency + "/" + Address;
-		var sUrl = "https://block.io/api/v2/get_address_balance/" + currency + "/" + Address;
-		var site = (currency=="BTCTEST"?"testnet.":"");
-		sUrl = "https://" + site + "blockchain.info/balance?active=" + Address;
+		var sUrl = "https://chain.so/api/v2/get_address_balance/" + currency + "/" + Address;
 
-		getDataFromServer("aProxy.jsp", "u=" + sUrl.hexEncode(), "json", function(data){
-			console.log(JSON.Stringify(data));
+		getDataFromServer("aProxy.jsp", "u=" + encodeURI(sUrl), "json", function(data){
 			if (beEmpty(data.status) || data.status!="success"){
 				msgBox("Fail to get balance for " + currency);
 				return;
@@ -386,6 +418,7 @@
 			getUsdValue(ExchangeRateBTC, data.data.confirmed_balance, recordId);
 
 		});	//getDataFromServer("xxx.jsp", sData, "json", function(data){
+
 
 		/*
 		$.getJSON( sUrl, function(data) {
@@ -413,7 +446,7 @@
 		if (!Address.startsWith("0x")) Address = "0x" + Address;
 		//https://api.etherscan.io/api?module=account&action=balance&address=0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a&tag=latest&apikey=YourApiKeyToken
 		sUrl = "https://" + sUrl + ".etherscan.io/api?module=account&action=balance&address=" + Address + "&tag=latest&apikey=" + myApiKey;
-console.log("u=" + encodeURI(sUrl));
+
 		getDataFromServer("aProxy.jsp", "u=" + encodeURI(sUrl), "json", function(data){
 			if (beEmpty(data.status) || data.status!="1"){
 				msgBox("Fail to get balance for " + currency);
@@ -542,3 +575,4 @@ console.log("u=" + encodeURI(sUrl));
 		}
 	}
 </script>
+
