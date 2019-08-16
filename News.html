@@ -206,6 +206,7 @@
         $("#rss-feeds")
           .hide()
           .rss(sUrl, {
+          	ssl: true,
             limit: 50,
             effect: 'slideFastSynced',
             layoutTemplate: '{entries}',
