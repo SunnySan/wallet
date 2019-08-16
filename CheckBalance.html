@@ -288,8 +288,8 @@
 						s += "	<div class='box box-widget widget-user'>";
 						s += "		<!-- Add the bg color to the header using any of the bg-* classes -->";
 						s += "		<div class='widget-user-header bg-aqua-active'>";
-						s += "			<h3 class='widget-user-username'>" + r.Currency_Name + "</h3><br><span id='usd" + r.id + "'></span>";
-						//s += "			<h5 class='widget-user-desc'>" + r.Currency_Id + "</h5>";
+						//s += "			<h3 class='widget-user-username'>" + r.Currency_Name + "</h3><br><span id='usd" + r.id + "'></span>";
+						s += "			<h3 class='widget-user-username'>" + r.Currency_Name + "</h3>";
 						tmp = "";
 						if (r.Currency_Id=="BTC") tmp = "https://bitaps.com/" + r.Address;
 						if (r.Currency_Id=="BTCTEST") tmp = "https://tbtc.bitaps.com/" + r.Address;
@@ -309,7 +309,10 @@
 						s += "					<div class='description-block'>";
 						s += "						<h5 class='description-header' id='c" + r.id + "-1'></h5>";
 						if (r.Currency_Id=="BTC" || r.Currency_Id=="BTCTEST"){
-							s += "						<span class='description-text'>Confirmed</span>";
+							//s += "						<span class='description-text'>Confirmed</span>";
+							s += "						<span class='description-text'>(BTC)</span>";
+						}else if (r.Currency_Id=="ETH" || r.Currency_Id=="ETHTEST"){
+							s += "						<span class='description-text'>(ETH)</span>";
 						}else{
 							s += "						<span class='description-text'>Balance</span>";
 						}
@@ -320,6 +323,7 @@
 						s += "				</div><!-- /.col -->";
 						s += "				<div class='col-sm-6 border-right'>";
 						s += "					<div class='description-block'>";
+						/*
 						if (r.Currency_Id=="BTC" || r.Currency_Id=="BTCTEST"){
 							s += "						<h5 class='description-header' id='c" + r.id + "-2'></h5>";
 							s += "						<span class='description-text'>Unconfirmed</span>";
@@ -327,6 +331,9 @@
 							s += "						<h5 class='description-header' id='c" + r.id + "-2'>&nbsp;</h5>";
 							s += "						<span class='description-text'>&nbsp;</span>";
 						}
+						*/
+						s += "						<h5 class='description-header' id='c" + r.id + "-2'></h5>";
+						s += "						<span class='description-text'>(&#8776;&nbsp;USD)</span>";
 						s += "					<div class='description-block'>";
 						s += "						<button type='button' class='btn btn-block btn-success btn-sm' onclick='doReceive(\"" + r.id + "\", \"" + r.Currency_Id + "\", \"" + r.Currency_Name + "\", \"" + r.Publicy_Key + "\", \"" + r.Address + "\");'>Receive</button>";
 						s += "					</div><!-- /.description-block -->";
@@ -446,7 +453,8 @@
 		//console.log("cryptocurrencyValue= " + cryptocurrencyValue);
 		if (rate<=0.0 || cryptocurrencyValue<=0.0) return;
 		var f = parseFloat(rate*cryptocurrencyValue).toFixed(2);
-		$('#usd' + recordId).html("USD&nbsp;&#8776;&nbsp;" + f);
+		//$('#usd' + recordId).html("USD&nbsp;&#8776;&nbsp;" + f);
+		$('#c' + recordId + '-2').text(f);
 	}
 	
 	function removeCurrencyFromSelectOption(){
