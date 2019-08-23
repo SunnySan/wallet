@@ -40,7 +40,11 @@ function notEmpty(s){
 function toCurrency(s){
 	if (beEmpty(s)) return "";	//字串為空
 	if (isNaN(s))	return s;	//不是數字，回覆原字串
-	
+
+    var parts = num.toString().split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+	/*
 	var i = 0;
 	var j = 0;
 	var k = 0;
@@ -57,6 +61,7 @@ function toCurrency(s){
 		s2 = s2 + (s2==""?"":",") + s.substring(k+(l*3), k+(l+1)*3);
 	}
 	return s2;
+	*/
 }
 
 /**********將字串的空白去掉**********/
